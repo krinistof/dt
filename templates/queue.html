@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block title %} Voting {% endblock %}
+{% block body %}
+<div class="candidate-list">
+{% for candidate in candidates %}
+<div class="candidate-card" id="candidate-{{ candidate.id }}">
+    <span class="candidate-name">{{ candidate.name }}</span>
+    <div class="vote-area">
+	<span class="score">Score: {{ candidate.score }}</span>
+	<span class="vote-button"
+	      hx-post="/vote"
+	      hx-trigger="dblclick"
+	      hx-target="#candidate-{{ candidate.id }}"
+	      hx-swap="outerHTML"
+	      hx-vals='{"direction": "down"}'>👎</span>
+	<span class="vote-button"
+	      hx-post="/vote"
+	      hx-trigger="dblclick"
+	      hx-target="#candidate-{{ candidate.id }}"
+	      hx-swap="outerHTML"
+	      hx-vals='{"direction": "up"}'>👍</span>
+    </div>
+</div>
+{% endfor %}
+</div>
+{% endblock %}
+
