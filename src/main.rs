@@ -1,6 +1,8 @@
-
-use axum::{routing::{get, post}, Router, extract::Path};
+use uuid::Uuid;
 use askama::Template;
+use serde::{Serialize, Deserialize};
+use actix_web::{web::{self, Form}, App, HttpResponse, HttpServer};
+use anyhow::Result;
 
 #[derive(Template)]
 #[template(path = "queue.html")]
@@ -14,39 +16,60 @@ struct Candidate {
     score: f64,
 }
 
+#[derive(Debug, Deserialize)]
+struct Vote {
+    decision: f64,
+    //TODO make to Uuid
+    voter_id: String,
+    candidate_id: String,
+}
+
 async fn queue() -> Queue {
     Queue {
-        candidates: vec![Candidate {
-            id: "xdd".into(),
-            name: "John Doe".into(),
-            score: 5.4
-        }]
+        candidates: vec![
+            Candidate {
+                id: "xdd".into(),
+                name: "fuh te".into(),
+                score: 6.4
+            },
+            Candidate {
+                id: "xde".into(),
+                name: "ági fut-e".into(),
+                score: 3.4
+            }
+        ]
     } 
 }
 
 //async fn vote(Path((voter, candidate)): Path<(String, String)>) -> Queue {
-async fn vote(axum::extract::Json(req): axum::extract::Json<serde_json::Value>) -> Queue {
+async fn vote(Form(req): Form<Vote>) -> Queue {
     println!("{req:#?}");
     Queue {
-        candidates: vec![Candidate {
-            id: "xdd".into(),
-            name: "John Done".into(),
-            score: 6.4
-        }]
+        candidates: vec![
+            Candidate {
+                id: "xdd".into(),
+                name: "fuh te".into(),
+                score: 6.4
+            },
+            Candidate {
+                id: "xde".into(),
+                name: "ági fut-e".into(),
+                score: 3.4
+            }
+        ]
     } 
 }
 
 #[tokio::main]
-async fn main() {
-    // define routes
-    let app = Router::new()
-        .route("/", get(queue))
-        .route("/vote", post(vote));
+async fn main() -> Result<()> {
+    println!("listening on 0.0.0.0:80");
 
-    // run it
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
-        .await
-        .unwrap();
-    println!("listening on {}", listener.local_addr().unwrap());
-    axum::serve(listener, app).await.unwrap();
+    Ok(HttpServer::new(|| {
+        App::new()
+            .route("/", web::get().to(queue))
+            .route("/vote", web::post().to(vote))
+    })
+    .bind("0.0.0.0:80")?
+    .run()
+    .await?)
 }

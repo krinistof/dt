@@ -4,8 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-askama = { version = "0.12.1", features = ["with-axum"] }
-askama_axum = "0.4.0"
-axum = "0.7.7"
-serde_json = "1.0.128"
-tokio = { version = "1.40.0", features = ["full"] }
+askama = { version = "0.12", features = ["with-actix-web"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.40", features = ["full"] }
+rusqlite = { version = "0.32", atures = ["bundled"] }
+anyhow = "1.0"
+uuid = "1.11"
+actix-web = "4.9"
+askama_actix = "0.14.0"
