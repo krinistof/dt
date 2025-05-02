@@ -1,21 +1,13 @@
 {% extends "layout.html" %}
 {% block title %} Voting {% endblock %}
 {% block body %}
-<div class="candidate-list">
-{% for candidate in candidates %}
-<div class="candidate-card" id="candidate-{{ candidate.id }}">
-    <span class="candidate-name">{{ candidate.name }}</span>
-    <div class="vote-area">
-	<span class="score">Score: {{ candidate.score }}</span>
-	<span class="vote-button"
-	      hx-post="/vote"
-	      hx-trigger="dblclick"
-	      hx-target="#candidate-{{ candidate.id }}"
-	      hx-swap="outerHTML"
-	      hx-vals='{"decision": 1.1, "voter_id": "xdd", "candidate_id": "{{ candidate.id }}"}'>👍</span>
-    </div>
+<h1>Song Queue (Voting)</h1>
+<p>Vote on songs to influence the order. Double click the 👍 button to vote (example).</p>
+<div class="candidate-list" id="song-queue">
+    {% include "partials/candidate_list.html" %}
 </div>
-{% endfor %}
-</div>
-{% endblock %}
 
+<!-- Example of how to periodically refresh the list -->
+<!-- <div hx-get="/" hx-trigger="load, every 10s" hx-target="#song-queue" hx-swap="innerHTML"></div> -->
+
+{% endblock %}

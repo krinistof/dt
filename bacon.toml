@@ -1,0 +1,39 @@
+# This is a configuration file for the bacon tool
+#
+# Bacon repository: https://github.com/Canop/bacon
+# Complete help on configuration: https://dystroy.org/bacon/config/
+# You can also check bacon's own bacon.toml file
+#  as an example: https://github.com/Canop/bacon/blob/main/bacon.toml
+
+default_job = "dev"
+
+[jobs.test]
+command = ["cargo", "nextest", "run", "--color", "always", "--hide-progress-bar", "--failure-output", "final"]
+need_stdout = true
+analyzer = "nextest"
+
+[jobs.doc]
+command = ["cargo", "doc", "--color", "always", "--no-deps"]
+need_stdout = false
+
+# If the doc compiles, then it opens in your browser and bacon switches
+# to the previous job
+[jobs.doc-open]
+command = ["cargo", "doc", "--color", "always", "--no-deps", "--open"]
+need_stdout = false
+on_success = "back" # so that we don't open the browser at each change
+
+[jobs.dev]
+command = [
+    "cargo", "run",
+    "--color", "always",
+    "--release",
+    "--no-default-features",
+    "--features", "dev",
+    # put launch parameters for your program behind a `--` separator
+]
+need_stdout = true
+allow_warnings = true
+background = false
+on_change_strategy = "kill_then_restart"
+

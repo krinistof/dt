@@ -1,0 +1,28 @@
+{% if candidates.is_empty() %}
+    <p>No songs in the queue yet.</p>
+{% else %}
+    {% for candidate in candidates %}
+    <div class="candidate-card" id="candidate-{{ candidate.id }}">
+        <span class="candidate-name">{{ candidate.name }}</span>
+        <div class="vote-area">
+            <span class="score">Score: {{ candidate.score }}</span>
+            <!-- TODO: Implement actual slider and voting logic -->
+            <span class="vote-button"
+                  hx-post="/vote"
+                  hx-trigger="dblclick"
+                  hx-target="#candidate-{{ candidate.id }}" {# Example: target the card itself #}
+                  hx-swap="outerHTML" {# Example: replace the card with updated info #}
+                  hx-vals='{"decision": 10, "voter_id": "anonymous", "candidate_id": "{{ candidate.id }}"}' {# Placeholder values #}
+                  style="cursor: pointer; user-select: none;"
+                  title="Double-click to vote (Example)">
+                  👍
+            </span>
+             <!-- Placeholder for slider -->
+             <input type="range" min="-127" max="127" value="0" style="width: 100px; vertical-align: middle; margin-left: 10px;"
+                    name="decision_slider_{{ candidate.id }}"
+                    {# Add hx attributes here later for slider voting #}
+                    >
+        </div>
+    </div>
+    {% endfor %}
+{% endif %}

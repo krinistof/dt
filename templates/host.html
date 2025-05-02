@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+{% block title %} Host Control {% endblock %}
+
+{% block body %}
+<h1>Host Control Panel</h1>
+
+<div class="player-container" style="margin-bottom: 20px;">
+    <h2>Now Playing</h2>
+    <audio id="audioPlayer" controls>
+        Your browser does not support the audio element.
+    </audio>
+    <p>Current Song: <span id="currentSongName">None</span></p>
+    <!-- TODO play the song from the top of the queue, and if the song ends pop the top from the list -->
+</div>
+
+<div class="song-list">
+    <h2>Available Songs</h2>
+    <ul>
+        {% for song in songs %}
+        <li>
+            <span>{{ song.name }}</span>
+            <button
+                class="play-button"
+                data-song-id="{{ song.id }}"
+                data-song-name="{{ song.name }}">
+                Play
+            </button>
+        </li>
+        {% endfor %}
+    </ul>
+    {% if songs.is_empty() %}
+    <p>No songs found in the music directory.</p>
+    {% endif %}
+</div>
+
+<script>
+    // Simple script to handle playing songs
+    const audioPlayer = document.getElementById('audioPlayer');
+    const currentSongNameEl = document.getElementById('currentSongName');
+    const playButtons = document.querySelectorAll('.play-button');
+
+    playButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const songId = this.getAttribute('data-song-id');
+            const songName = this.getAttribute('data-song-name');
+
+            // Construct the URL to the stream endpoint
+            // Need to URL-encode the song ID in case it has special characters
+            const songUrl = `/play/${encodeURIComponent(songId)}`;
+
+            console.log(`Playing ${songName} from ${songUrl}`);
+
+            // Update the audio source and play
+            audioPlayer.src = songUrl;
+            audioPlayer.load(); // Important: load the new source
+            audioPlayer.play().catch(error => {
+                console.error("Playback failed:", error);
+                // Handle browsers blocking autoplay etc.
+            });
+
+            // Update the display
+            currentSongNameEl.textContent = songName;
+        });
+    });
+
+    // Optional: Add event listener for when song ends to play next automatically
+    // audioPlayer.addEventListener('ended', function() {
+    //     console.log('Song ended. Implement logic to play next song.');
+    //     // Find the next song in the list and trigger its play button click, or call a backend endpoint
+    // });
+
+</script>
+
+<style>
+    /* Basic styling */
+    .song-list ul { list-style: none; padding: 0; }
+    .song-list li { margin-bottom: 5px; padding: 5px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .play-button { padding: 2px 8px; cursor: pointer; }
+    .player-container { padding: 15px; border: 1px solid #ccc; background-color: #f8f8f8; }
+</style>
+
+{% endblock %}
