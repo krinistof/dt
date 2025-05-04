@@ -2,12 +2,10 @@
 {% block title %} Voting {% endblock %}
 {% block body %}
 <h1>Song Queue (Voting)</h1>
-<p>Vote on songs to influence the order. Double click the 👍 button to vote (example).</p>
+<p>Adjust the slider to vote. Changes are submitted automatically shortly after you stop moving the slider.</p>
+
 <div class="candidate-list" id="song-queue">
     {% include "partials/candidate_list.html" %}
 </div>
-
-<!-- Example of how to periodically refresh the list -->
-<!-- <div hx-get="/" hx-trigger="load, every 10s" hx-target="#song-queue" hx-swap="innerHTML"></div> -->
 
 {% endblock %}

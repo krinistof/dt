@@ -6,22 +6,30 @@
         <span class="candidate-name">{{ candidate.name }}</span>
         <div class="vote-area">
             <span class="score">Score: {{ candidate.score }}</span>
-            <!-- TODO: Implement actual slider and voting logic -->
-            <span class="vote-button"
-                  hx-post="/vote"
-                  hx-trigger="dblclick"
-                  hx-target="#candidate-{{ candidate.id }}" {# Example: target the card itself #}
-                  hx-swap="outerHTML" {# Example: replace the card with updated info #}
-                  hx-vals='{"decision": 10, "voter_id": "anonymous", "candidate_id": "{{ candidate.id }}"}' {# Placeholder values #}
-                  style="cursor: pointer; user-select: none;"
-                  title="Double-click to vote (Example)">
-                  👍
-            </span>
-             <!-- Placeholder for slider -->
-             <input type="range" min="-127" max="127" value="0" style="width: 100px; vertical-align: middle; margin-left: 10px;"
-                    name="decision_slider_{{ candidate.id }}"
-                    {# Add hx attributes here later for slider voting #}
-                    >
+
+            <form hx-post="/vote"
+                  hx-target="#song-queue"
+                  hx-swap="innerHTML"
+                  hx-trigger="change delay:500ms" {# Or mouseup, input delay:500ms #}
+                  style="display: inline-block; margin-left: 10px;"
+                  >
+
+                <input type="hidden" name="voter_id" value="{{ voter_id }}">
+
+                <input type="hidden" name="song_id" value="{{ candidate.id }}">
+
+                {% let current_vote = candidate.voter_decision.unwrap_or(0) %}
+                <input type="range" min="-127" max="127"
+                       value="{{ current_vote }}"
+                       name="decision"
+                       style="width: 150px; vertical-align: middle;"
+                       title="Vote: Drag to set score (-127 to 127)"
+                       data-value-display-id="slider-value-{{ candidate.id }}"
+                       oninput="document.getElementById(this.dataset.valueDisplayId).textContent = this.value"
+                       >
+                <span style="margin-left: 5px; min-width: 30px; display: inline-block;" id="slider-value-{{ candidate.id }}">{{ current_vote }}</span>
+
+            </form>
         </div>
     </div>
     {% endfor %}
