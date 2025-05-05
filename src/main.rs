@@ -408,6 +408,7 @@ async fn get_candidates_with_scores(pool: &SqlitePool, voter_id: Uuid) -> Result
         FROM songs s
         LEFT JOIN SongScores ss ON s.id = ss.song_id
         LEFT JOIN VoterDecisions vd ON s.id = vd.song_id
+        WHERE s.played_at IS NULL
         ORDER BY COALESCE(CAST(ss.total_score AS REAL), 0.0) DESC;
         "#,
         voter_id_str

@@ -7,7 +7,7 @@
 <div class="candidate-list"
      id="song-queue"
      hx-get="/queue" 
-  {# hx-trigger="every 1s" TODO DEV ONLY #}
+     hx-trigger="every 5s"
      hx-swap="innerHTML"
      hx-sync="#song-queue:queue last">
     {% include "partials/candidate_list.html" %}
