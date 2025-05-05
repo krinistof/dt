@@ -4,8 +4,8 @@
         <span class="score">Score: {{ candidate.score }}</span>
 
         <form hx-post="/vote"
-              hx-target="closest .candidate-card"
-              hx-swap="outerHTML"
+              hx-target="#song-queue"
+              hx-swap="innerHTML"
               hx-trigger="change"
               style="display: inline-block; margin-left: 10px;">
 
