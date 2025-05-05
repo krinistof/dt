@@ -1,10 +1,15 @@
 {% extends "layout.html" %}
 {% block title %} Voting {% endblock %}
 {% block body %}
-<h1>Song Queue (Voting)</h1>
-<p>Adjust the slider to vote. Changes are submitted automatically shortly after you stop moving the slider.</p>
+<h1>Democratic Tier</h1>
+<p>Adjust the slider to vote.</p>
 
-<div class="candidate-list" id="song-queue">
+<div class="candidate-list"
+     id="song-queue"
+     hx-get="/queue" 
+  {# hx-trigger="every 1s" TODO DEV ONLY #}
+     hx-swap="innerHTML"
+     hx-sync="#song-queue:queue last">
     {% include "partials/candidate_list.html" %}
 </div>
 
