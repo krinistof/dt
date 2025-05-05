@@ -6,6 +6,7 @@ use actix_web::{
 use anyhow::{Context, Result, bail};
 use askama::Template;
 use askama_actix::TemplateToResponse;
+use chrono::{NaiveDateTime, Utc};
 use serde::Deserialize;
 use sqlx::sqlite::{SqlitePool, SqlitePoolOptions};
 use std::path::{Path, PathBuf};
@@ -48,6 +49,7 @@ struct Song {
     name: String,
     #[sqlx(skip)]
     file_path: Option<String>,
+    played_at: Option<NaiveDateTime>
 }
 
 // Candidate represents a song in the voting queue
@@ -59,6 +61,12 @@ struct Candidate {
     score: f64,
     #[sqlx(default)] // Default to None if the voter hasn't voted for this song
     voter_decision: Option<i64>,
+}
+
+#[derive(Clone, Debug, serde::Serialize, sqlx::FromRow)]
+struct NextSongInfo {
+    id: String,
+    name: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -156,7 +164,7 @@ async fn sync_songs_to_db(music_dir: &Path, pool: &SqlitePool) -> Result<()> {
 async fn get_songs_from_db(pool: &SqlitePool) -> Result<Vec<Song>> {
     let songs = sqlx::query_as!(
         Song,
-        "SELECT id as id, name, file_path FROM songs"
+        "SELECT * FROM songs"
     )
     .fetch_all(pool)
     .await?;
@@ -265,6 +273,80 @@ async fn serve_song(
             Err(actix_web::error::ErrorNotFound(
                 "Song not found in database",
             ))
+        }
+    }
+}
+
+// Endpoint to get the next song for the host player
+async fn next_song_handler(data: web::Data<AppState>) -> Result<HttpResponse, Error> {
+    let pool = &data.db_pool;
+
+    // Start a transaction
+    let mut tx = pool.begin().await.map_err(|e| {
+        log::error!("Failed to begin transaction: {}", e);
+        actix_web::error::ErrorInternalServerError("Database error")
+    })?;
+
+    // Find the top-scoring song that hasn't been played (played_at IS NULL)
+    let next_song_candidate = sqlx::query_as!(
+        NextSongInfo,
+        r#"
+        SELECT
+            s.id as "id!",
+            s.name as "name!"
+        FROM songs s
+        LEFT JOIN (
+            SELECT song_id, SUM(decision) as total_score
+            FROM votes
+            GROUP BY song_id
+        ) v ON s.id = v.song_id
+        WHERE s.played_at IS NULL  -- Only select songs that haven't been played
+        ORDER BY COALESCE(v.total_score, 0) DESC -- Order by score (handle null scores)
+        LIMIT 1;
+        "#
+    )
+    .fetch_optional(&mut *tx) // Use the transaction
+    .await
+    .map_err(|e| {
+        log::error!("Failed to query next song: {}", e);
+        actix_web::error::ErrorInternalServerError("Database error finding next song")
+    })?;
+
+    match next_song_candidate {
+        Some(song) => {
+            log::debug!("Next song selected: ID={}, Name={}", song.id, song.name);
+            let now = Utc::now();
+            let update_result = sqlx::query!(
+                "UPDATE songs SET played_at = ? WHERE id = ?",
+                now,
+                song.id
+            )
+            .execute(&mut *tx) // Use the transaction
+            .await;
+
+            match update_result {
+                Ok(_) => {
+                    // Commit the transaction
+                    tx.commit().await.map_err(|e| {
+                        log::error!("Failed to commit transaction: {}", e);
+                        actix_web::error::ErrorInternalServerError("Database error saving play status")
+                    })?;
+                    log::info!("Marked song {} as played.", song.id);
+                    Ok(HttpResponse::Ok().json(song)) // Return song info as JSON
+                }
+                Err(e) => {
+                    log::error!("Failed to mark song {} as played: {}", song.id, e);
+                    // Rollback implicitly handled by drop, but good practice to log
+                    Err(actix_web::error::ErrorInternalServerError(
+                        "Database error updating play status",
+                    ))
+                }
+            }
+        }
+        None => {
+            log::warn!("No unplayed songs found in the queue.");
+            // No need to commit/rollback as nothing was changed
+            Ok(HttpResponse::NotFound().body("No unplayed songs available"))
         }
     }
 }
@@ -528,6 +610,7 @@ async fn main() -> Result<()> {
             .route("/host", web::get().to(host_page))
             .route("/queue", web::get().to(queue_content_handler))
             .route("/play/{song_id}", web::get().to(serve_song))
+            .route("/next", web::get().to(next_song_handler))
             .service(actix_files::Files::new("/static", "./static"))
     })
     .bind(ADDR)?

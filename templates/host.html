@@ -10,6 +10,14 @@
         Your browser does not support the audio element.
     </audio>
     <p>Current Song: <span id="currentSongName">None</span></p>
+    <div>
+        <button id="autoplayToggle">Start Autoplay</button>
+        <span id="autoplayStatus" style="margin-left: 10px;">Autoplay is OFF</span>
+    </div>
+    <!-- Optional Reset Button -->
+    <form action="/reset_played" method="POST" style="margin-top: 10px;">
+        <button type="submit">Reset Played Status</button>
+    </form>
 </div>
 
 <div class="song-list">
@@ -17,7 +25,8 @@
     <ul>
         {% for song in songs %}
         <li>
-            <span>{{ song.name }}</span>
+            <!-- Display played status (optional) -->
+            <span>{{ song.name }} {% if song.played_at.is_some() %} (Played: {{ song.played_at.unwrap().format("%Y-%m-%d %H:%M") }}) {% endif %}</span>
             <button
                 class="play-button"
                 data-song-id="{{ song.id }}"
@@ -33,40 +42,117 @@
 </div>
 
 <script>
-    // Simple script to handle playing songs
     const audioPlayer = document.getElementById('audioPlayer');
     const currentSongNameEl = document.getElementById('currentSongName');
     const playButtons = document.querySelectorAll('.play-button');
+    const autoplayToggle = document.getElementById('autoplayToggle');
+    const autoplayStatus = document.getElementById('autoplayStatus');
 
+    let isAutoplayActive = false;
+
+    // Function to update the autoplay button and status text
+    function updateAutoplayUI() {
+        if (isAutoplayActive) {
+            autoplayToggle.textContent = 'Stop Autoplay';
+            autoplayStatus.textContent = 'Autoplay is ON';
+            autoplayToggle.classList.add('active');
+        } else {
+            autoplayToggle.textContent = 'Start Autoplay';
+            autoplayStatus.textContent = 'Autoplay is OFF';
+             autoplayToggle.classList.remove('active');
+        }
+    }
+
+    // Function to play a specific song
+    function playSong(songId, songName) {
+        const songUrl = `/play/${encodeURIComponent(songId)}`;
+        console.log(`Playing ${songName} from ${songUrl}`);
+        currentSongNameEl.textContent = songName;
+        audioPlayer.src = songUrl;
+        audioPlayer.load();
+        audioPlayer.play().catch(error => {
+            console.error("Playback failed:", error);
+            currentSongNameEl.textContent = `Error playing ${songName}`;
+            // Consider stopping autoplay if playback fails repeatedly
+            // isAutoplayActive = false;
+            // updateAutoplayUI();
+        });
+    }
+
+    // --- Event Listeners ---
+
+    // Handle manual play button clicks
     playButtons.forEach(button => {
         button.addEventListener('click', function() {
             const songId = this.getAttribute('data-song-id');
             const songName = this.getAttribute('data-song-name');
-
-            // Construct the URL to the stream endpoint
-            // Need to URL-encode the song ID in case it has special characters
-            const songUrl = `/play/${encodeURIComponent(songId)}`;
-
-            console.log(`Playing ${songName} from ${songUrl}`);
-
-            // Update the audio source and play
-            audioPlayer.src = songUrl;
-            audioPlayer.load(); // Important: load the new source
-            audioPlayer.play().catch(error => {
-                console.error("Playback failed:", error);
-                // Handle browsers blocking autoplay etc.
-            });
-
-            // Update the display
-            currentSongNameEl.textContent = songName;
+            playSong(songId, songName);
+            // Ensure autoplay doesn't immediately trigger next on manual play
+            // (The 'ended' event listener handles the flow)
         });
     });
 
-    // Optional: Add event listener for when song ends to play next automatically
-    // audioPlayer.addEventListener('ended', function() {
-    //     console.log('Song ended. Implement logic to play next song.');
-    //     // Find the next song in the list and trigger its play button click, or call a backend endpoint
-    // });
+    // Toggle Autoplay state
+    autoplayToggle.addEventListener('click', () => {
+        isAutoplayActive = !isAutoplayActive;
+        updateAutoplayUI();
+        console.log(`Autoplay ${isAutoplayActive ? 'enabled' : 'disabled'}`);
+        if (isAutoplayActive && audioPlayer.paused && !audioPlayer.currentTime) {
+           fetchNextAndPlay();
+        }
+    });
+
+    // Handle song ending (for autoplay)
+    audioPlayer.addEventListener('ended', () => {
+        console.log('Song ended.');
+        if (isAutoplayActive) {
+            console.log('Autoplay active, fetching next song...');
+            fetchNextAndPlay();
+        } else {
+            console.log('Autoplay is off.');
+            currentSongNameEl.textContent = "None (Playback finished)";
+        }
+    });
+
+    // Handle playback errors more explicitly
+     audioPlayer.addEventListener('error', (e) => {
+        console.error('Audio Player Error:', audioPlayer.error);
+        currentSongNameEl.textContent = `Error: ${audioPlayer.error?.message || 'Unknown playback error'}`;
+        // Potentially disable autoplay on error
+        // isAutoplayActive = false;
+        // updateAutoplayUI();
+    });
+
+
+    // Function to fetch the next song from the backend and play it
+    async function fetchNextAndPlay() {
+        try {
+            const response = await fetch('/next'); // GET request to our new endpoint
+            if (response.ok) {
+                const song = await response.json();
+                console.log('Received next song:', song);
+                playSong(song.id, song.name);
+            } else if (response.status === 404) {
+                console.log('No more unplayed songs available.');
+                currentSongNameEl.textContent = 'Queue finished';
+                isAutoplayActive = false; // Turn off autoplay when queue ends
+                updateAutoplayUI();
+            } else {
+                console.error('Failed to fetch next song:', response.status, await response.text());
+                currentSongNameEl.textContent = 'Error fetching next song';
+                 isAutoplayActive = false; // Turn off autoplay on error
+                 updateAutoplayUI();
+            }
+        } catch (error) {
+            console.error('Network error fetching next song:', error);
+            currentSongNameEl.textContent = 'Network error fetching next song';
+            isAutoplayActive = false; // Turn off autoplay on error
+            updateAutoplayUI();
+        }
+    }
+
+    // Initial setup
+    updateAutoplayUI(); // Set initial button text/status
 
 </script>
 
@@ -75,6 +161,7 @@
     .song-list li { margin-bottom: 5px; padding: 5px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
     .play-button { padding: 2px 8px; cursor: pointer; }
     .player-container { padding: 15px; border: 1px solid #ccc; background-color: #f8f8f8; }
+    #autoplayToggle.active { background-color: #4CAF50; color: white; } /* Style for active button */
 </style>
 
 {% endblock %}

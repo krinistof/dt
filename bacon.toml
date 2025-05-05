@@ -26,6 +26,7 @@ on_success = "back" # so that we don't open the browser at each change
 
 [jobs.run]
 env.RUST_LOG = "debug"
+env.RUSTFLAGS = "-Z macro-backtrace"
 command = [
     "cargo", "run",
     "--color", "always",
