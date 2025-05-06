@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %} | Democratic Tier</title>
     <script src="static/htmx.org@2.0.3"></script>
+    <script src="static/idiomorph"></script>
+    <script src="static/idiomorph-ext.min.js"></script>
     <style>
         body { font-family: sans-serif; margin: 20px; }
         .candidate-list, .song-list { margin-top: 15px; }
@@ -14,7 +16,7 @@
         .score { margin-right: 15px; }
     </style>
   </head>
-  <body>
+  <body hx-ext="morph">
     {% block body %}{% endblock %}
   </body>
 </html>

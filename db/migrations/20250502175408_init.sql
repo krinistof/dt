@@ -1,7 +1,6 @@
 CREATE TABLE IF NOT EXISTS songs (
     id TEXT PRIMARY KEY NOT NULL,
     name TEXT NOT NULL,
-    file_path TEXT NOT NULL UNIQUE,
     played_at TIMESTAMP
 );
 

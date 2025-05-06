@@ -1,4 +1,3 @@
-use actix_files::NamedFile;
 use actix_web::{
     App, Error, HttpResponse, HttpServer, Responder,
     web::{self, Form},
@@ -47,8 +46,6 @@ struct CandidateList {
 struct Song {
     id: String,
     name: String,
-    #[sqlx(skip)]
-    file_path: Option<String>,
     played_at: Option<NaiveDateTime>,
 }
 
@@ -78,6 +75,18 @@ struct Vote {
 
 struct AppState {
     db_pool: SqlitePool,
+}
+
+impl Candidate {
+    pub fn html_id_suffix(&self) -> String {
+        self.id
+            .chars()
+            .map(|c| match c {
+                'a'..='z' | 'A'..='Z' | '0'..='9' => c,
+                _ => '_', // Replace any non-alphanumeric character with an underscore
+            })
+            .collect()
+    }
 }
 
 // --- Database Functions ---
@@ -118,16 +127,10 @@ async fn sync_songs_to_db(music_dir: &Path, pool: &SqlitePool) -> Result<()> {
                         // If song is not in DB, insert it
                         if !songs_in_db.contains(&id) {
                             log::info!("Adding new song to DB: ID={}, Name={}", id, name);
-                            let full_path_str = path.canonicalize()?.to_string_lossy().to_string(); // Store canonical path
 
-                            sqlx::query!(
-                                "INSERT INTO songs (id, name, file_path) VALUES (?, ?, ?)",
-                                id,
-                                name,
-                                full_path_str
-                            )
-                            .execute(pool)
-                            .await?;
+                            sqlx::query!("INSERT INTO songs (id, name) VALUES (?, ?)", id, name)
+                                .execute(pool)
+                                .await?;
                             songs_added += 1;
                         } else {
                             // Remove from the set, remaining items will be deleted later
@@ -168,52 +171,6 @@ async fn get_songs_from_db(pool: &SqlitePool) -> Result<Vec<Song>> {
     Ok(songs)
 }
 
-// TODO unused now, will be useful for restoring from song preview
-async fn get_single_candidate_with_score(
-    pool: &SqlitePool,
-    song_id: &str,
-    voter_id: Uuid,
-) -> Result<Option<Candidate>> {
-    let voter_id_str = voter_id.to_string();
-
-    // Query specifically for the one song, joining to get its score and voter decision
-    let candidate = sqlx::query_as!(
-        Candidate,
-        r#"
-        WITH SongScores AS (
-            SELECT
-                song_id,
-                SUM(decision) as total_score
-            FROM votes
-            WHERE song_id = ? -- Filter by song_id here
-            GROUP BY song_id
-        ), VoterDecisions AS (
-            SELECT
-                song_id,
-                decision
-            FROM votes
-            WHERE voter_id = ? AND song_id = ? -- Filter by voter and song
-        )
-        SELECT
-            s.id as "id!",
-            s.name as "name!",
-            COALESCE(CAST(ss.total_score AS REAL), 0.0) as "score!: f32",
-            vd.decision as "voter_decision: i64"
-        FROM songs s
-        LEFT JOIN SongScores ss ON s.id = ss.song_id
-        LEFT JOIN VoterDecisions vd ON s.id = vd.song_id
-        WHERE s.id = ?
-        "#,
-        song_id,      // For SongScores WHERE
-        voter_id_str, // For VoterDecisions WHERE
-        song_id,      // For VoterDecisions WHERE
-        song_id       // For the final WHERE s.id = ?
-    )
-    .fetch_optional(pool) // Use fetch_optional as the song might theoretically not exist
-    .await?;
-
-    Ok(candidate)
-}
 // --- Handlers ---
 
 // Serves the host page (reads songs from DB)
@@ -223,57 +180,6 @@ async fn host_page(data: web::Data<AppState>) -> Result<Host, Error> {
         actix_web::error::ErrorInternalServerError("Could not load songs")
     })?;
     Ok(Host { songs })
-}
-
-// Serves a specific song file (reads path from DB)
-// TODO remove, refactor to URL requests from MUSIC_DIRECTORY served via `actix_files::Files`
-async fn serve_song(
-    data: web::Data<AppState>,
-    song_id: web::Path<String>,
-) -> Result<NamedFile, Error> {
-    let song_filename = song_id.into_inner();
-
-    // Fetch the file path from the database using the song ID (filename)
-    let song_record = sqlx::query!("SELECT file_path FROM songs WHERE id = ?", song_filename)
-        .fetch_optional(&data.db_pool)
-        .await
-        .map_err(|e| {
-            log::error!(
-                "Database error fetching song path for ID {}: {}",
-                song_filename,
-                e
-            );
-            actix_web::error::ErrorInternalServerError("Database error")
-        })?;
-
-    match song_record {
-        Some(record) => {
-            let file_path_str = &record.file_path;
-            let file_path = PathBuf::from(file_path_str);
-            log::info!("Attempting to serve file: {:?}", file_path);
-
-            NamedFile::open(file_path).map_err(|e| {
-                log::error!(
-                    "Failed to open file {} (path: {:?}): {}",
-                    song_filename,
-                    record.file_path,
-                    e
-                );
-                match e.kind() {
-                    std::io::ErrorKind::NotFound => {
-                        actix_web::error::ErrorNotFound("Song file not found on disk")
-                    }
-                    _ => actix_web::error::ErrorInternalServerError("Error serving file"),
-                }
-            })
-        }
-        None => {
-            log::warn!("Song ID {} not found in database", song_filename);
-            Err(actix_web::error::ErrorNotFound(
-                "Song not found in database",
-            ))
-        }
-    }
 }
 
 // Endpoint to get the next song for the host player
@@ -598,9 +504,9 @@ async fn main() -> Result<()> {
             .route("/vote", web::post().to(vote))
             .route("/host", web::get().to(host_page))
             .route("/queue", web::get().to(queue_content_handler))
-            .route("/play/{song_id}", web::get().to(serve_song))
             .route("/next", web::get().to(next_song_handler))
             .service(actix_files::Files::new("/static", "./static"))
+            .service(actix_files::Files::new("/songs", MUSIC_DIRECTORY).show_files_listing()) //TODO DEV ONLY, remove listing
     })
     .bind(ADDR)?
     .run()

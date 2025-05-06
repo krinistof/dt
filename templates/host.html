@@ -65,7 +65,7 @@
 
     // Function to play a specific song
     function playSong(songId, songName) {
-        const songUrl = `/play/${encodeURIComponent(songId)}`;
+        const songUrl = `/songs/${encodeURIComponent(songId)}`;
         console.log(`Playing ${songName} from ${songUrl}`);
         currentSongNameEl.textContent = songName;
         audioPlayer.src = songUrl;
