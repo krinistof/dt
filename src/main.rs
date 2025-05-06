@@ -49,7 +49,7 @@ struct Song {
     name: String,
     #[sqlx(skip)]
     file_path: Option<String>,
-    played_at: Option<NaiveDateTime>
+    played_at: Option<NaiveDateTime>,
 }
 
 // Candidate represents a song in the voting queue
@@ -148,7 +148,7 @@ async fn sync_songs_to_db(music_dir: &Path, pool: &SqlitePool) -> Result<()> {
         sqlx::query!("DELETE FROM songs WHERE id = ?", missing_song_id)
             .execute(pool)
             .await?;
-        // Consider also deleting votes for this song? Or keep them? Depends on desired behavior.
+        // TODO create test: does the cascading delete removes votes? if not:
         // sqlx::query!("DELETE FROM votes WHERE song_id = ?", missing_song_id).execute(pool).await?;
     }
 
@@ -162,15 +162,13 @@ async fn sync_songs_to_db(music_dir: &Path, pool: &SqlitePool) -> Result<()> {
 
 // Function to get songs (now reads from DB)
 async fn get_songs_from_db(pool: &SqlitePool) -> Result<Vec<Song>> {
-    let songs = sqlx::query_as!(
-        Song,
-        "SELECT * FROM songs"
-    )
-    .fetch_all(pool)
-    .await?;
+    let songs = sqlx::query_as!(Song, "SELECT * FROM songs")
+        .fetch_all(pool)
+        .await?;
     Ok(songs)
 }
 
+// TODO unused now, will be useful for restoring from song preview
 async fn get_single_candidate_with_score(
     pool: &SqlitePool,
     song_id: &str,
@@ -228,6 +226,7 @@ async fn host_page(data: web::Data<AppState>) -> Result<Host, Error> {
 }
 
 // Serves a specific song file (reads path from DB)
+// TODO remove, refactor to URL requests from MUSIC_DIRECTORY served via `actix_files::Files`
 async fn serve_song(
     data: web::Data<AppState>,
     song_id: web::Path<String>,
@@ -316,20 +315,19 @@ async fn next_song_handler(data: web::Data<AppState>) -> Result<HttpResponse, Er
         Some(song) => {
             log::debug!("Next song selected: ID={}, Name={}", song.id, song.name);
             let now = Utc::now();
-            let update_result = sqlx::query!(
-                "UPDATE songs SET played_at = ? WHERE id = ?",
-                now,
-                song.id
-            )
-            .execute(&mut *tx) // Use the transaction
-            .await;
+            let update_result =
+                sqlx::query!("UPDATE songs SET played_at = ? WHERE id = ?", now, song.id)
+                    .execute(&mut *tx) // Use the transaction
+                    .await;
 
             match update_result {
                 Ok(_) => {
                     // Commit the transaction
                     tx.commit().await.map_err(|e| {
                         log::error!("Failed to commit transaction: {}", e);
-                        actix_web::error::ErrorInternalServerError("Database error saving play status")
+                        actix_web::error::ErrorInternalServerError(
+                            "Database error saving play status",
+                        )
                     })?;
                     log::info!("Marked song {} as played.", song.id);
                     Ok(HttpResponse::Ok().json(song)) // Return song info as JSON
@@ -476,6 +474,7 @@ async fn queue_content_handler(
     // 2. Fetch candidates using the retrieved voter ID
     match get_candidates_with_scores(&data.db_pool, voter_id).await {
         Ok(candidates) => {
+            //TODO investigate: should cookie jar be handled here as well?
             let partial = CandidateList {
                 candidates,
                 voter_id,
@@ -500,9 +499,9 @@ async fn vote(data: web::Data<AppState>, Form(vote_data): Form<Vote>) -> impl Re
     } = vote_data;
 
     if !(-127..=127).contains(&decision) {
-        // Log the error, but maybe don't crash the request? Or return Bad Request.
-        log::warn!("Invalid decision value received: {}", decision);
-        // Decide how strict to be. For now, we proceed.
+        log::warn!("Invalid decision value {decision} received from {voter_id}");
+        return HttpResponse::BadRequest()
+            .body(format!("<p>Error saving vote with decision {decision}</p>"));
     }
 
     let voter_id_string = voter_id.to_string();
@@ -538,9 +537,7 @@ async fn vote(data: web::Data<AppState>, Form(vote_data): Form<Vote>) -> impl Re
                 .to_response(),
                 Err(e) => {
                     log::error!(
-                        "Failed to get full candidate list after voting (voter {}): {}",
-                        voter_id,
-                        e
+                        "Failed to get full candidate list after voting (voter {voter_id}): {e}"
                     );
                     // Return an error message intended for the list container
                     HttpResponse::InternalServerError()
@@ -549,7 +546,7 @@ async fn vote(data: web::Data<AppState>, Form(vote_data): Form<Vote>) -> impl Re
             }
         }
         Err(e) => {
-            log::error!("Failed to record vote for song {}: {}", song_id, e);
+            log::error!("Failed to record vote for song {song_id}: {e}");
             HttpResponse::InternalServerError().body("<p>Error saving vote</p>")
         }
     }
@@ -559,42 +556,33 @@ async fn vote(data: web::Data<AppState>, Form(vote_data): Form<Vote>) -> impl Re
 async fn main() -> Result<()> {
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
-    // Ensure database directory exists
     let db_dir = Path::new("db");
     if !db_dir.exists() {
         fs::create_dir(db_dir).await?;
         log::info!("Created database directory: {:?}", db_dir);
     }
 
-    log::info!("Connecting to database: {}", DATABASE_URL);
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
         .connect(DATABASE_URL)
         .await
-        .context("Failed to connect to database")?;
+        .context(format!("Failed to connect to database {DATABASE_URL}"))?;
 
-    log::info!("Running database migrations...");
     sqlx::migrate!("./db/migrations")
         .run(&pool)
         .await
         .context("Failed to run database migrations")?;
-    log::info!("Database migrations completed.");
 
-    // Prepare music directory
     let music_dir = PathBuf::from(MUSIC_DIRECTORY);
     if !music_dir.exists() {
-        log::warn!(
-            "Music directory does not exist: {:?}. Creating it.",
-            music_dir
-        );
-        bail!("Music directory '{}' not found!", MUSIC_DIRECTORY);
+        log::warn!("Music directory does not exist: {music_dir:?}",);
+        bail!("Music directory '{MUSIC_DIRECTORY}' not found!");
     } else if !music_dir.is_dir() {
-        bail!("Path '{}' is not a directory!", MUSIC_DIRECTORY);
+        bail!("Path '{MUSIC_DIRECTORY}' is not a directory!");
     } else {
         log::info!("Serving music from: {:?}", music_dir.canonicalize()?);
     }
 
-    // Sync songs from directory to database on startup
     sync_songs_to_db(&music_dir, &pool).await?;
 
     const ADDR: &str = "0.0.0.0:80";
