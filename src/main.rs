@@ -93,7 +93,7 @@ impl Candidate {
 
 // Function to sync songs from the directory to the database
 async fn sync_songs_to_db(music_dir: &Path, pool: &SqlitePool) -> Result<()> {
-    log::info!("Starting song sync from directory: {:?}", music_dir);
+    log::info!("Starting song sync from directory: {music_dir:?}");
     let mut songs_in_db: std::collections::HashSet<String> = sqlx::query!("SELECT id FROM songs")
         .fetch_all(pool)
         .await?
@@ -126,7 +126,7 @@ async fn sync_songs_to_db(music_dir: &Path, pool: &SqlitePool) -> Result<()> {
 
                         // If song is not in DB, insert it
                         if !songs_in_db.contains(&id) {
-                            log::info!("Adding new song to DB: ID={}, Name={}", id, name);
+                            log::info!("Adding new song to DB: ID={id}, Name={name}");
 
                             sqlx::query!("INSERT INTO songs (id, name) VALUES (?, ?)", id, name)
                                 .execute(pool)
@@ -144,10 +144,7 @@ async fn sync_songs_to_db(music_dir: &Path, pool: &SqlitePool) -> Result<()> {
 
     // Remove songs from DB that are no longer in the directory
     for missing_song_id in songs_in_db {
-        log::warn!(
-            "Removing song from DB (not found in directory): {}",
-            missing_song_id
-        );
+        log::warn!("Removing song from DB (not found in directory): {missing_song_id}");
         sqlx::query!("DELETE FROM songs WHERE id = ?", missing_song_id)
             .execute(pool)
             .await?;
@@ -156,9 +153,7 @@ async fn sync_songs_to_db(music_dir: &Path, pool: &SqlitePool) -> Result<()> {
     }
 
     log::info!(
-        "Song sync completed. Found {} songs in dir, Added {} new songs.",
-        songs_found_in_dir,
-        songs_added
+        "Song sync completed. Found {songs_found_in_dir} songs in dir, Added {songs_added} new songs."
     );
     Ok(())
 }
@@ -176,7 +171,7 @@ async fn get_songs_from_db(pool: &SqlitePool) -> Result<Vec<Song>> {
 // Serves the host page (reads songs from DB)
 async fn host_page(data: web::Data<AppState>) -> Result<Host, Error> {
     let songs = get_songs_from_db(&data.db_pool).await.map_err(|e| {
-        log::error!("Failed to get songs from DB: {}", e);
+        log::error!("Failed to get songs from DB: {e}");
         actix_web::error::ErrorInternalServerError("Could not load songs")
     })?;
     Ok(Host { songs })
@@ -188,7 +183,7 @@ async fn next_song_handler(data: web::Data<AppState>) -> Result<HttpResponse, Er
 
     // Start a transaction
     let mut tx = pool.begin().await.map_err(|e| {
-        log::error!("Failed to begin transaction: {}", e);
+        log::error!("Failed to begin transaction: {e}");
         actix_web::error::ErrorInternalServerError("Database error")
     })?;
 
@@ -213,7 +208,7 @@ async fn next_song_handler(data: web::Data<AppState>) -> Result<HttpResponse, Er
     .fetch_optional(&mut *tx) // Use the transaction
     .await
     .map_err(|e| {
-        log::error!("Failed to query next song: {}", e);
+        log::error!("Failed to query next song: {e}");
         actix_web::error::ErrorInternalServerError("Database error finding next song")
     })?;
 
@@ -230,7 +225,7 @@ async fn next_song_handler(data: web::Data<AppState>) -> Result<HttpResponse, Er
                 Ok(_) => {
                     // Commit the transaction
                     tx.commit().await.map_err(|e| {
-                        log::error!("Failed to commit transaction: {}", e);
+                        log::error!("Failed to commit transaction: {e}");
                         actix_web::error::ErrorInternalServerError(
                             "Database error saving play status",
                         )
@@ -336,7 +331,7 @@ async fn queue_page(req: actix_web::HttpRequest, data: web::Data<AppState>) -> i
                 voter_id,
             };
             let body = template.render().unwrap_or_else(|e| {
-                log::error!("Template rendering error: {}", e);
+                log::error!("Template rendering error: {e}");
                 "Error rendering page".to_string()
             });
 
@@ -353,7 +348,7 @@ async fn queue_page(req: actix_web::HttpRequest, data: web::Data<AppState>) -> i
                 .body(body)
         }
         Err(e) => {
-            log::error!("Failed to get candidates: {}", e);
+            log::error!("Failed to get candidates: {e}");
             HttpResponse::InternalServerError().body("Could not load queue")
         }
     }
@@ -388,7 +383,7 @@ async fn queue_content_handler(
             partial.to_response()
         }
         Err(e) => {
-            log::error!("Failed to get candidates for polling refresh: {}", e);
+            log::error!("Failed to get candidates for polling refresh: {e}");
             HttpResponse::InternalServerError().body("<p>Error refreshing queue</p>")
         }
     }
@@ -396,7 +391,7 @@ async fn queue_content_handler(
 
 // Handles votes and returns the updated candidate list partial
 async fn vote(data: web::Data<AppState>, Form(vote_data): Form<Vote>) -> impl Responder {
-    log::debug!("Received vote: {:?}", vote_data);
+    log::debug!("Received vote: {vote_data:?}");
 
     let Vote {
         decision,
@@ -429,11 +424,7 @@ async fn vote(data: web::Data<AppState>, Form(vote_data): Form<Vote>) -> impl Re
 
     match result {
         Ok(_) => {
-            log::debug!(
-                "Vote recorded successfully for voter {} on song {}",
-                voter_id,
-                song_id
-            );
+            log::debug!("Vote recorded successfully for voter {voter_id} on song {song_id}");
 
             match get_candidates_with_scores(&data.db_pool, voter_id).await {
                 Ok(updated_candidates) => CandidateList {
@@ -465,7 +456,7 @@ async fn main() -> Result<()> {
     let db_dir = Path::new("db");
     if !db_dir.exists() {
         fs::create_dir(db_dir).await?;
-        log::info!("Created database directory: {:?}", db_dir);
+        log::info!("Created database directory: {db_dir:?}");
     }
 
     let pool = SqlitePoolOptions::new()
@@ -492,7 +483,7 @@ async fn main() -> Result<()> {
     sync_songs_to_db(&music_dir, &pool).await?;
 
     const ADDR: &str = "0.0.0.0:80";
-    log::info!("Listening on {}", ADDR);
+    log::info!("Listening on {ADDR}");
 
     HttpServer::new(move || {
         App::new()
