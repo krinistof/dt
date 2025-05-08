@@ -1,12 +1,12 @@
 # Featues for v0.2
 ## Simpler interface for better UX
-Remove the slider, and make each card slideable left to right for scoring. Animate changing order.
+Remove the slider, and make each card horizontally dragable for scoring. Animate order changes. Stop queue fetching while user interacts.
 
 ## Song preview
 Double tapping on a song card changes to a preview mode, where the voter can listen to the song on their device.
 
 ## Toggleable dark and white apperance
-With a icon button on the top left, change between dark and light mode.
+With a ic on button on the top left, change between dark and light mode.
 
 ## Explore songs directory for changes
 If a new directory gets added to the music directory, add it to the database.
