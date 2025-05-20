@@ -6,10 +6,19 @@
 #  as an example: https://github.com/Canop/bacon/blob/main/bacon.toml
 
 default_job = "run"
-env.RUST_LOG_STYLE="always"
+env.RUST_LOG_STYLE = "always"
 
 [jobs.test]
-command = ["cargo", "nextest", "run", "--color", "always", "--hide-progress-bar", "--failure-output", "final"]
+command = [
+    "cargo",
+    "nextest",
+    "run",
+    "--color",
+    "always",
+    "--hide-progress-bar",
+    "--failure-output",
+    "final",
+]
 need_stdout = true
 analyzer = "nextest"
 
@@ -22,14 +31,16 @@ need_stdout = false
 [jobs.doc-open]
 command = ["cargo", "doc", "--color", "always", "--no-deps", "--open"]
 need_stdout = false
-on_success = "back" # so that we don't open the browser at each change
+on_success = "back"                                                    # so that we don't open the browser at each change
 
 [jobs.run]
-env.RUST_LOG = "debug"
+env.RUST_LOG = "dt"
 env.RUSTFLAGS = "-Z macro-backtrace"
 command = [
-    "cargo", "run",
-    "--color", "always",
+    "cargo",
+    "run",
+    "--color",
+    "always",
     "--release",
     # put launch parameters for your program behind a `--` separator
 ]
@@ -37,4 +48,3 @@ need_stdout = true
 allow_warnings = true
 background = false
 on_change_strategy = "kill_then_restart"
-
