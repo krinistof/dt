@@ -1,8 +1,6 @@
 <div class="candidate-card" id="candidate-{{ candidate.html_id_suffix() }}">
     <span class="candidate-name">{{ candidate.name }}</span>
     <div class="vote-area">
-        <span class="score">Score: {{ candidate.score }}</span>
-
         <form hx-post="/vote"
               hx-target="#song-queue"
               hx-swap="innerHTML"
@@ -20,7 +18,6 @@
                    title="Vote: Drag to set score (left bad, right good)"
                    data-value-display-id="slider-value-{{ candidate.html_id_suffix() }}"
                    oninput="document.getElementById(this.dataset.valueDisplayId).textContent = this.value">
-            <span style="margin-left: 5px; min-width: 30px; display: inline-block;" id="slider-value-{{ candidate.html_id_suffix() }}">{{ current_vote }}</span>
         </form>
     </div>
 </div>

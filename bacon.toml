@@ -35,14 +35,15 @@ on_success = "back"                                                    # so that
 
 [jobs.run]
 env.RUST_LOG = "dt"
-env.RUSTFLAGS = "-Z macro-backtrace"
+#env.RUSTFLAGS = "-Z macro-backtrace"
 command = [
     "cargo",
     "run",
     "--color",
     "always",
     "--release",
-    # put launch parameters for your program behind a `--` separator
+    #"--features",
+    #"dev",
 ]
 need_stdout = true
 allow_warnings = true
