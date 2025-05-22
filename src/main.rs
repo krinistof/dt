@@ -28,12 +28,14 @@ struct Queue {
     voter_id: Uuid,
 }
 
+/*
 #[derive(Template)]
 #[template(path = "partials/candidate_card.html")]
 struct CandidateCard {
     candidate: Candidate,
     voter_id: Uuid,
 }
+*/
 
 #[derive(Template)]
 #[template(path = "partials/candidate_list.html")]
@@ -54,8 +56,6 @@ struct Song {
 struct Candidate {
     id: String, // Use the filename ID consistent with Song
     name: String,
-    #[sqlx(default)] // Default score if not fetched directly via JOIN
-    score: f64,
     #[sqlx(default)] // Default to None if the voter hasn't voted for this song
     voter_decision: Option<i64>,
 }
@@ -201,7 +201,7 @@ async fn next_song_handler(data: web::Data<AppState>) -> Result<HttpResponse, Er
             GROUP BY song_id
         ) v ON s.id = v.song_id
         WHERE s.played_at IS NULL  -- Only select songs that haven't been played
-        ORDER BY COALESCE(v.total_score, 0) DESC -- Order by score (handle null scores)
+        ORDER BY COALESCE(v.total_score, 0) DESC
         LIMIT 1;
         "#
     )
@@ -302,7 +302,6 @@ async fn get_candidates_with_scores(pool: &SqlitePool, voter_id: Uuid) -> Result
         SELECT
             s.id as "id!",
             s.name as "name!",
-            COALESCE(CAST(ss.total_score AS REAL), 0.0) as score,
             vd.decision as "voter_decision: i64"
         FROM songs s
         LEFT JOIN SongScores ss ON s.id = ss.song_id
@@ -459,6 +458,7 @@ async fn main() -> Result<()> {
         log::info!("Created database directory: {db_dir:?}");
     }
 
+    //let db_file = db_dir.join("votes.db");
     let pool = SqlitePoolOptions::new()
         .max_connections(5)
         .connect(DATABASE_URL)
@@ -482,7 +482,11 @@ async fn main() -> Result<()> {
 
     sync_songs_to_db(&music_dir, &pool).await?;
 
-    const ADDR: &str = "0.0.0.0:80";
+    const ADDR: &str = if cfg!(feature = "dev") {
+        "0.0.0.0:8080"
+    } else {
+        "0.0.0.0:80"
+    };
     log::info!("Listening on {ADDR}");
 
     HttpServer::new(move || {
@@ -497,7 +501,7 @@ async fn main() -> Result<()> {
             .route("/queue", web::get().to(queue_content_handler))
             .route("/next", web::get().to(next_song_handler))
             .service(actix_files::Files::new("/static", "./static"))
-            .service(actix_files::Files::new("/songs", MUSIC_DIRECTORY).show_files_listing()) //TODO DEV ONLY, remove listing
+            .service(actix_files::Files::new("/songs", MUSIC_DIRECTORY))
     })
     .bind(ADDR)?
     .run()
