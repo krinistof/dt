@@ -7,10 +7,44 @@
 <div class="candidate-list"
      id="song-queue"
      hx-get="/queue" 
-     hx-trigger="every 3s"
+     hx-trigger="every 3s [window.allowSongQueuePolling !== false]"
      hx-swap="morph:innerHTML"
      hx-sync="#song-queue:queue last">
     {% include "partials/candidate_list.html" %}
 </div>
+
+<script>
+  window.allowSongQueuePolling = true;
+
+  document.addEventListener('DOMContentLoaded', function() {
+      const songQueue = document.getElementById('song-queue');
+
+      if (!songQueue) {
+          console.warn('Element with ID "song-queue" not found. Polling control script will not run.');
+          return;
+      }
+
+      function handleInteractionStart(event) {
+          if (event.target.matches('input[type="range"][name="decision"]')) {
+              if (window.allowSongQueuePolling) { 
+                  window.allowSongQueuePolling = false;
+              }
+          }
+      }
+
+      function handleInteractionEnd(event) {
+          if (!window.allowSongQueuePolling) {
+              window.allowSongQueuePolling = true;
+          }
+      }
+
+      songQueue.addEventListener('mousedown', handleInteractionStart);
+      songQueue.addEventListener('touchstart', handleInteractionStart, { passive: true });
+
+      document.addEventListener('mouseup', handleInteractionEnd);
+      document.addEventListener('touchend', handleInteractionEnd);
+      document.addEventListener('touchcancel', handleInteractionEnd);
+  });
+</script>
 
 {% endblock %}
