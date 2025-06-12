@@ -3,8 +3,6 @@ use actix_web::{
     web::{self, Form},
 };
 use anyhow::{Context, Result, bail};
-use askama::Template;
-use askama_actix::TemplateToResponse;
 use chrono::{NaiveDateTime, Utc};
 use serde::Deserialize;
 use sqlx::sqlite::{SqlitePool, SqlitePoolOptions};
@@ -27,15 +25,6 @@ struct Queue {
     candidates: Vec<Candidate>,
     voter_id: Uuid,
 }
-
-/*
-#[derive(Template)]
-#[template(path = "partials/candidate_card.html")]
-struct CandidateCard {
-    candidate: Candidate,
-    voter_id: Uuid,
-}
-*/
 
 #[derive(Template)]
 #[template(path = "partials/candidate_list.html")]

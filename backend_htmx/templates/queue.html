@@ -2,14 +2,14 @@
 {% block title %} Voting {% endblock %}
 {% block body %}
 <h1>Democratic Tier</h1>
-<p>Adjust the slider to vote.</p>
+<p>Swipe cards left or right to vote. </p>
 
 <div class="candidate-list"
      id="song-queue"
      hx-get="/queue" 
      hx-trigger="every 3s [window.allowSongQueuePolling !== false]"
      hx-swap="morph:innerHTML"
-     hx-sync="#song-queue:queue last">
+     hx-sync="this:queue last">
     {% include "partials/candidate_list.html" %}
 </div>
 

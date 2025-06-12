@@ -5,12 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %} | Democratic Tier</title>
     <script src="static/htmx.org@2.0.3"></script>
+    +    <!-- TODO check if more minified version exitst -->
     <script src="static/idiomorph"></script>
     <script src="static/idiomorph-ext.min.js"></script>
     <style>
         body { font-family: sans-serif; margin: 20px; }
         .candidate-list, .song-list { margin-top: 15px; }
-        .candidate-card, .song-card { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; background-color: #f9f9f9; }
+        .candidate-card, .song-card {
+            border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; background-color: #f9f9f9; 
+            cursor: grab;
+            user-select: none; /* prevent text selection during drag */
+            position: relative;
+            transition: transform 0.3s ease-out, background-color 0.3s ease-out;
+        }
         .candidate-name, .song-name { font-weight: bold; }
         .vote-area, .play-area { margin-top: 5px; }
         .score { margin-right: 15px; }
