@@ -1,0 +1,44 @@
+{
+  "poll-id": "3933107e-affb-455f-8594-a0970e66db85",
+  "header": "Which is the best?",
+  "options": [
+    {
+      "option-id": "8e1f6b92-a3c6-4fc8-86da-cef4521e16f9",
+      "metadata": {
+        "title": "Banana",
+        "description": "tropical fruit, tasty"
+      },
+      "score": 57,
+      "user_latest_vote": 18
+    },
+    {
+      "option-id": "3b1a61f2a-3d1e-47fb-ac8f-914d6c3d215",
+      "metadata": {
+        "title": "Watermelon",
+        "description": "full of water, refreshing"
+      },
+      "score": 46,
+      "user_latest_vote": -28
+    },
+    {
+      "option-id": "5beb9a8d-1fa7-499c-bcd7-97ffed3674c5",
+      "ft-id": "f99d831f-eb4b-4b0c-b914-e2ea8bbba1b6",
+      "metadata": {
+        "title": "Kiwi",
+        "description": "bitter yet sweet, compact"
+      },
+      "score": 35,
+      "user_latest_vote": 0
+    },
+    {
+      "option-id": "7d18a442-8b4a-40c4-9db5-13a96dd75aa4",
+      "metadata": {
+        "title": "Raspberry",
+        "description": "soft, interesting texture"
+      },
+      "score": -4,
+      "user_latest_vote": 74
+    }
+  ]
+}
+

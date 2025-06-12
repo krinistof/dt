@@ -1,0 +1,14 @@
+[package]
+name = "dt-backend"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tonic = "0.10"
+prost = "0.12"
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+tonic-web = "0.10"
+tower-http = { version = "0.4", features = ["cors"] }
+
+[build-dependencies]
+tonic-build = "0.10"
