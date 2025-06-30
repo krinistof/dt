@@ -1,7 +1,0 @@
-{% if candidates.is_empty() %}
-    <p>No songs in the queue yet.</p>
-{% else %}
-    {% for candidate in candidates %}
-        {% include "partials/candidate_card.html" %}
-    {% endfor %}
-{% endif %}
