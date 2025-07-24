@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package log;
+
+service LogService {
+  rpc Log (LogRequest) returns (LogReply);
+}
+
+message LogRequest {
+  repeated string messages = 1;
+}
+
+message LogReply {
+  bool success = 1;
+}

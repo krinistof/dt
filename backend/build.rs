@@ -4,7 +4,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build_client(false)
         .build_server(true)
         .compile(
-            &["../proto/greeter.proto"], // Path to your .proto file
+            &["../proto/log.proto"], // Path to your .proto file
             &["../proto"],                // Directory to search for includes
         )?;
     Ok(())

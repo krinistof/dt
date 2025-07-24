@@ -3,30 +3,32 @@ use tower_http::cors::{Any, CorsLayer}; // For CORS
 
 // Import generated types
 // The `include_proto!` macro generates rust code from the proto file
-// and includes it in the current scope. The "greeter" part should
+// and includes it in the current scope. The "log" part should
 // match the package name in your .proto file.
-pub mod greeter {
-    tonic::include_proto!("greeter");
+pub mod log {
+    tonic::include_proto!("log");
 }
 
-use greeter::{
-    greeter_server::{Greeter, GreeterServer},
-    HelloReply, HelloRequest,
+use log::{
+    log_service_server::{LogService, LogServiceServer},
+    LogReply, LogRequest,
 };
 
 #[derive(Debug, Default)]
-pub struct MyGreeter {}
+pub struct MyLogService {}
 
 #[tonic::async_trait]
-impl Greeter for MyGreeter {
-    async fn say_hello(
+impl LogService for MyLogService {
+    async fn log(
         &self,
-        request: Request<HelloRequest>,
-    ) -> Result<Response<HelloReply>, Status> {
-        println!("Got a request: {:?}", request);
+        request: Request<LogRequest>,
+    ) -> Result<Response<LogReply>, Status> {
+        for message in request.get_ref().messages.iter() {
+            println!("Log: {}", message);
+        }
 
-        let reply = HelloReply {
-            message: format!("Hello {}!", request.into_inner().name),
+        let reply = LogReply {
+            success: true,
         };
 
         Ok(Response::new(reply))
@@ -36,20 +38,20 @@ impl Greeter for MyGreeter {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "0.0.0.0:50051".parse()?;
-    let greeter = MyGreeter::default();
+    let log_service = MyLogService::default();
 
-    println!("GreeterServer listening on {}", addr);
+    println!("LogService listening on {}", addr);
 
     // CORS layer for gRPC-Web
     // This allows requests from any origin, method, and header.
-    // For production, you might want to restrict this.
+    // TODO DEV ONLY
     let cors = CorsLayer::new()
         .allow_origin(Any) // In production, specify your frontend origin
         .allow_methods(Any)
         .allow_headers(Any);
 
     // Enable gRPC-Web and apply CORS
-    let grpc_service = GreeterServer::new(greeter);
+    let grpc_service = LogServiceServer::new(log_service);
     let grpc_web_service = tonic_web::enable(grpc_service);
 
     Server::builder()
