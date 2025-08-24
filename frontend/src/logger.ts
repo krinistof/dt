@@ -2,6 +2,8 @@
 import { LogServiceClient } from './grpc';
 import { addLog, getAllLogs, clearLogs } from './idb';
 
+const RETRY_TIMEOUT_MS: number = 3000;
+
 /**
  * Sends a log message to the backend log collector.
  * @param level The log level (e.g., 'ERROR', 'WARN', 'INFO').
@@ -39,7 +41,28 @@ async function syncLogs() {
       console.error("Log collector reported a failure for synced logs.");
     }
   } catch (error) {
-    console.error("Failed to sync logs to the collector:", error);
+    let isFetchError = false;
+    if (error instanceof Error) {
+      // Check the main error message
+      if (error.message.toLowerCase().includes('failed to fetch')) {
+        isFetchError = true;
+      }
+      // Safely check the cause for newer browsers/error-wrapping libraries
+      if (!isFetchError && error.cause instanceof Error) {
+        if (error.cause.message.toLowerCase().includes('failed to fetch')) {
+          isFetchError = true;
+        }
+      }
+    }
+
+    if (isFetchError) {
+      console.info("Failed to sync logs to the collector due to a network error.");
+    } else {
+      console.error("Failed to sync logs to the collector:", error);
+    }
+    
+    console.info(`Retrying in ${RETRY_TIMEOUT_MS} ms...`);
+    setTimeout(syncLogs, RETRY_TIMEOUT_MS);
   }
 }
 
