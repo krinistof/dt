@@ -1,33 +1,27 @@
 use tonic::{transport::Server, Request, Response, Status};
-use tower_http::cors::{Any, CorsLayer}; // For CORS
+use tower_http::cors::{Any, CorsLayer};
 
-// Import generated types
-// The `include_proto!` macro generates rust code from the proto file
-// and includes it in the current scope. The "log" part should
-// match the package name in your .proto file.
 pub mod log {
-    tonic::include_proto!("log");
+    tonic::include_proto!("log.v1");
 }
 
 use log::{
-    log_service_server::{LogService, LogServiceServer},
-    LogReply, LogRequest,
+    log_collector_service_server::{LogCollectorService, LogCollectorServiceServer},
+    LogResponse, LogRequest,
 };
 
 #[derive(Debug, Default)]
-pub struct MyLogService {}
+pub struct LogCollector {}
 
 #[tonic::async_trait]
-impl LogService for MyLogService {
+impl LogCollectorService for LogCollector {
     async fn log(
         &self,
         request: Request<LogRequest>,
-    ) -> Result<Response<LogReply>, Status> {
-        for message in request.get_ref().messages.iter() {
-            println!("Log: {}", message);
-        }
+    ) -> Result<Response<LogResponse>, Status> {
+        println!("Log: {}", request.get_ref().message);
 
-        let reply = LogReply {
+        let reply = LogResponse {
             success: true,
         };
 
@@ -37,10 +31,10 @@ impl LogService for MyLogService {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = "0.0.0.0:50051".parse()?;
-    let log_service = MyLogService::default();
+    let addr = "[::1]:50051".parse()?;
+    let log_service = LogCollector::default();
 
-    println!("LogService listening on {}", addr);
+    println!("LogService listening on {addr}");
 
     // CORS layer for gRPC-Web
     // This allows requests from any origin, method, and header.
@@ -50,8 +44,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .allow_methods(Any)
         .allow_headers(Any);
 
-    // Enable gRPC-Web and apply CORS
-    let grpc_service = LogServiceServer::new(log_service);
+    let grpc_service = LogCollectorServiceServer::new(log_service);
     let grpc_web_service = tonic_web::enable(grpc_service);
 
     Server::builder()
