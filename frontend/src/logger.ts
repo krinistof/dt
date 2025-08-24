@@ -3,6 +3,7 @@ import { LogServiceClient } from './grpc';
 import { addLog, getAllLogs, clearLogs } from './idb';
 
 const RETRY_TIMEOUT_MS: number = 3000;
+let retryTimeoutId: number | null = null;
 
 /**
  * Sends a log message to the backend log collector.
@@ -17,7 +18,6 @@ async function logToServer(level: string, message: string) {
 
 async function syncLogs() {
   if (!navigator.onLine) {
-    console.log("Offline, skipping log sync.");
     return;
   }
 
@@ -29,16 +29,19 @@ async function syncLogs() {
   console.log(`Attempting to sync ${logs.length} logs.`);
 
   try {
-    const logMessages = logs.map(log => `[${log.level}] ${log.message}`);
-    // This is a simplification. In a real-world scenario, you would
-    // likely send the logs in batches and handle partial failures.
-    const response = await LogServiceClient.log({ messages: logMessages });
+    for (const log of logs) {
+      const response = await LogServiceClient.log({ message:  `[${log.level}] ${log.message}` });
+      if (response.success) {
+        console.log("Successfully synced logs.");
+      } else {
+        console.error("Log collector reported a failure for synced logs.");
+      }
+    }
 
-    if (response.success) {
-      console.log("Successfully synced logs.");
-      await clearLogs();
-    } else {
-      console.error("Log collector reported a failure for synced logs.");
+    await clearLogs();
+    if (retryTimeoutId) {
+      clearTimeout(retryTimeoutId);
+      retryTimeoutId = null;
     }
   } catch (error) {
     let isFetchError = false;
@@ -61,8 +64,15 @@ async function syncLogs() {
       console.error("Failed to sync logs to the collector:", error);
     }
     
+    if (retryTimeoutId) {
+      return;
+    }
+
     console.info(`Retrying in ${RETRY_TIMEOUT_MS} ms...`);
-    setTimeout(syncLogs, RETRY_TIMEOUT_MS);
+    retryTimeoutId = setTimeout(() => {
+      retryTimeoutId = null;
+      syncLogs();
+    }, RETRY_TIMEOUT_MS);
   }
 }
 
@@ -115,17 +125,11 @@ console.error = (...args: any[]) => {
 // --- Network Status Handling ---
 
 window.addEventListener('online', () => {
-  console.log("Network connection restored. Attempting to sync logs.");
   syncLogs();
-});
-
-window.addEventListener('offline', () => {
-  console.log("Network connection lost. Logs will be stored locally.");
 });
 
 // --- Initial Sync ---
 
 // Attempt to sync logs when the application starts
 syncLogs();
-
 console.log("Global loggers and error handlers initialized.");
