@@ -23,7 +23,7 @@ The backend is a Rust application that uses the `tonic` library to provide a gRP
 *   **Prerequisites:**
     *   Rust: [https://www.rust-lang.org/tools/install](https://www.rust-lang.org/tools/install)
     *   Protobuf Compiler: [https://grpc.io/docs/protoc-installation/](https://grpc.io/docs/protoc-installation/)
-*   **Build:** `cargo build`
+*   **Build:** `cargo build` (this also builds the frontend)
 *   **Run:** `cargo run`
 
 ## Development Conventions

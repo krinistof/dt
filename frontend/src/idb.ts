@@ -115,6 +115,39 @@ export async function addEvent(event: Event) {
   store.add(event);
 }
 
+export async function getAllEvents(): Promise<{ key: IDBValidKey; event: any }[]> {
+    return new Promise(async (resolve, reject) => {
+        const db = await getDb();
+        const transaction = db.transaction('events', 'readonly');
+        const store = transaction.objectStore('events');
+        const request = store.openCursor();
+        const events: { key: IDBValidKey; event: any }[] = [];
+
+        request.onerror = () => {
+            reject('Error getting events from IndexedDB');
+        };
+
+        request.onsuccess = () => {
+            const cursor = request.result;
+            if (cursor) {
+                events.push({ key: cursor.key, event: cursor.value });
+                cursor.continue();
+            } else {
+                resolve(events);
+            }
+        };
+    });
+}
+
+export async function clearEvents(keys: IDBValidKey[]) {
+    const db = await getDb();
+    const transaction = db.transaction('events', 'readwrite');
+    const store = transaction.objectStore('events');
+    for (const key of keys) {
+        store.delete(key);
+    }
+}
+
 export async function putPost(post: Post) {
   const db = await getDb();
   const transaction = db.transaction('posts', 'readwrite');

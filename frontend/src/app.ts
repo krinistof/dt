@@ -1,4 +1,5 @@
 import './logger';
+import { syncEvents } from './sync';
 import { addEvent, getAllPosts, putPost, Post } from './idb';
 
 const postsContainer = document.getElementById('posts-container') as HTMLDivElement;
@@ -67,6 +68,7 @@ postForm.addEventListener('submit', async (e) => {
     action: 'post',
     payload: { content },
   });
+  syncEvents();
   await putPost(newPost);
   
   postContent.value = '';
@@ -109,6 +111,7 @@ postsContainer.addEventListener('change', async (e) => {
       action: 'vote',
       payload: { content_hash, score: user_score },
     });
+    syncEvents();
     await putPost(postToUpdate);
   }
 });

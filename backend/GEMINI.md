@@ -19,6 +19,8 @@ To build the project, run the following command:
 cargo build
 ```
 
+This command also builds the frontend assets.
+
 ### Running
 
 To run the service, use the following command:
