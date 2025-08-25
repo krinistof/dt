@@ -8,7 +8,8 @@ tonic = "0.10"
 prost = "0.12"
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
 tonic-web = "0.10"
-tower-http = { version = "0.4", features = ["cors"] }
+tower-http = { version = "0.4", features = ["cors", "fs"] }
+axum = "0.6"
 
 [build-dependencies]
 tonic-build = "0.10"
