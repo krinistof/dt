@@ -10,16 +10,16 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file dt/v1/dt.proto.
  */
 export const file_dt_v1_dt: GenFile = /*@__PURE__*/
-  fileDesc("Cg5kdC92MS9kdC5wcm90bxIFZHQudjEiPAoFRXZlbnQSEgoKdXNlcl90b2tlbhgBIAEoCRIOCgZhY3Rpb24YAiABKAkSDwoHcGF5bG9hZBgDIAEoCSIrCgtTeW5jUmVxdWVzdBIcCgZldmVudHMYASADKAsyDC5kdC52MS5FdmVudCIfCgxTeW5jUmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCDI8CglEdFNlcnZpY2USLwoEU3luYxISLmR0LnYxLlN5bmNSZXF1ZXN0GhMuZHQudjEuU3luY1Jlc3BvbnNlYgZwcm90bzM");
+  fileDesc("Cg5kdC92MS9kdC5wcm90bxIFZHQudjEiPAoFRXZlbnQSEgoKY2xpZW50X2tleRgBIAEoCRIOCgZhY3Rpb24YAiABKAkSDwoHcGF5bG9hZBgDIAEoCSJFChJTdWJtaXRFdmVudFJlcXVlc3QSEgoKdXNlcl90b2tlbhgBIAEoCRIbCgVldmVudBgCIAEoCzIMLmR0LnYxLkV2ZW50IiYKE1N1Ym1pdEV2ZW50UmVzcG9uc2USDwoHc3VjY2VzcxgBIAEoCDJKCgJEdBJECgtTdWJtaXRFdmVudBIZLmR0LnYxLlN1Ym1pdEV2ZW50UmVxdWVzdBoaLmR0LnYxLlN1Ym1pdEV2ZW50UmVzcG9uc2ViBnByb3RvMw");
 
 /**
  * @generated from message dt.v1.Event
  */
 export type Event = Message<"dt.v1.Event"> & {
   /**
-   * @generated from field: string user_token = 1;
+   * @generated from field: string client_key = 1;
    */
-  userToken: string;
+  clientKey: string;
 
   /**
    * @generated from field: string action = 2;
@@ -40,26 +40,31 @@ export const EventSchema: GenMessage<Event> = /*@__PURE__*/
   messageDesc(file_dt_v1_dt, 0);
 
 /**
- * @generated from message dt.v1.SyncRequest
+ * @generated from message dt.v1.SubmitEventRequest
  */
-export type SyncRequest = Message<"dt.v1.SyncRequest"> & {
+export type SubmitEventRequest = Message<"dt.v1.SubmitEventRequest"> & {
   /**
-   * @generated from field: repeated dt.v1.Event events = 1;
+   * @generated from field: string user_token = 1;
    */
-  events: Event[];
+  userToken: string;
+
+  /**
+   * @generated from field: dt.v1.Event event = 2;
+   */
+  event?: Event;
 };
 
 /**
- * Describes the message dt.v1.SyncRequest.
- * Use `create(SyncRequestSchema)` to create a new message.
+ * Describes the message dt.v1.SubmitEventRequest.
+ * Use `create(SubmitEventRequestSchema)` to create a new message.
  */
-export const SyncRequestSchema: GenMessage<SyncRequest> = /*@__PURE__*/
+export const SubmitEventRequestSchema: GenMessage<SubmitEventRequest> = /*@__PURE__*/
   messageDesc(file_dt_v1_dt, 1);
 
 /**
- * @generated from message dt.v1.SyncResponse
+ * @generated from message dt.v1.SubmitEventResponse
  */
-export type SyncResponse = Message<"dt.v1.SyncResponse"> & {
+export type SubmitEventResponse = Message<"dt.v1.SubmitEventResponse"> & {
   /**
    * @generated from field: bool success = 1;
    */
@@ -67,23 +72,23 @@ export type SyncResponse = Message<"dt.v1.SyncResponse"> & {
 };
 
 /**
- * Describes the message dt.v1.SyncResponse.
- * Use `create(SyncResponseSchema)` to create a new message.
+ * Describes the message dt.v1.SubmitEventResponse.
+ * Use `create(SubmitEventResponseSchema)` to create a new message.
  */
-export const SyncResponseSchema: GenMessage<SyncResponse> = /*@__PURE__*/
+export const SubmitEventResponseSchema: GenMessage<SubmitEventResponse> = /*@__PURE__*/
   messageDesc(file_dt_v1_dt, 2);
 
 /**
- * @generated from service dt.v1.DtService
+ * @generated from service dt.v1.Dt
  */
-export const DtService: GenService<{
+export const Dt: GenService<{
   /**
-   * @generated from rpc dt.v1.DtService.Sync
+   * @generated from rpc dt.v1.Dt.SubmitEvent
    */
-  sync: {
+  submitEvent: {
     methodKind: "unary";
-    input: typeof SyncRequestSchema;
-    output: typeof SyncResponseSchema;
+    input: typeof SubmitEventRequestSchema;
+    output: typeof SubmitEventResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_dt_v1_dt, 0);
