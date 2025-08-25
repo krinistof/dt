@@ -35,26 +35,35 @@ export async function addLog(log: any) {
   store.add(log);
 }
 
-export async function getAllLogs(): Promise<any[]> {
+export async function getAllLogs(): Promise<{ key: IDBValidKey; log: any }[]> {
     return new Promise(async (resolve, reject) => {
         const db = await getDb();
         const transaction = db.transaction(STORE_NAME, 'readonly');
         const store = transaction.objectStore(STORE_NAME);
-        const request = store.getAll();
+        const request = store.openCursor();
+        const logs: { key: IDBValidKey; log: any }[] = [];
 
         request.onerror = () => {
             reject('Error getting logs from IndexedDB');
         };
 
         request.onsuccess = () => {
-            resolve(request.result);
+            const cursor = request.result;
+            if (cursor) {
+                logs.push({ key: cursor.key, log: cursor.value });
+                cursor.continue();
+            } else {
+                resolve(logs);
+            }
         };
     });
 }
 
-export async function clearLogs() {
+export async function clearLogs(keys: IDBValidKey[]) {
     const db = await getDb();
     const transaction = db.transaction(STORE_NAME, 'readwrite');
     const store = transaction.objectStore(STORE_NAME);
-    store.clear();
+    for (const key of keys) {
+        store.delete(key);
+    }
 }
