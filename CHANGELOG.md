@@ -9,16 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 
--   **Social Media Features:**
-    -   Posting
 -   **Voting System:**
-    -   Voting on polls
     -   Follow live polls
 -   **Backend:**
     -   Add tests
 
 ### Finished
 
+-   **Social Media Features:**
+    -   Posting
+-   **Voting System:**
+    -   Voting on polls
+-   **Frontend:**
+    -   Implement both UI state and event queue in IndexedDB
 -   **Backend:** Singe server process for serving static assets and gRPC.
 
 ## [8.0.1] - 2025-08-25

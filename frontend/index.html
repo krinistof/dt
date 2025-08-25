@@ -3,14 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Protobuf Test</title>
+    <title>Democratic Tier</title>
   </head>
   <body>
-    <h1>Protobuf Test</h1>
-    <p>Check the console for output.</p>
-    <button id="logButton">Make a Log</button>
-    <button id="warnButton">Make a Warning</button>
-    <button id="errorButton">Make a Failing Request</button>
+    <h1>Democratic Tier</h1>
+    
+    <form id="post-form">
+      <textarea id="post-content" rows="4" cols="50" placeholder="What's on your mind?"></textarea>
+      <br>
+      <button type="submit">Post</button>
+    </form>
+
+    <hr>
+
+    <h2>Posts</h2>
+    <div id="posts-container"></div>
+
     <script type="module" src="/src/app.ts"></script>
   </body>
 </html>
