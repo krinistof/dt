@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package dt.v1;
+
+message Event {
+    string user_token = 1;
+    string action = 2;
+    string payload = 3;
+}
+
+message SyncRequest {
+    repeated Event events = 1;
+}
+
+message SyncResponse {
+    bool success = 1;
+}
+
+service DtService {
+    rpc Sync(SyncRequest) returns (SyncResponse);
+}

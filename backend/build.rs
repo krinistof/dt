@@ -4,7 +4,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     tonic_build::configure()
         .build_client(false)
         .build_server(true)
-        .compile(&["../proto/log/v1/log.proto"], &["../proto"])?;
+        .compile(&["../proto/log/v1/log.proto", "../proto/dt/v1/dt.proto"], &["../proto"])?;
 
     let profile = env::var("PROFILE").unwrap();
     let npm_command = if profile == "release" {

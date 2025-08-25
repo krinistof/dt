@@ -6,7 +6,7 @@ This is a local-first client for a voting system named "dt". It is written in Ty
 
 *   **Install dependencies:** `npm install`
 *   **Run development server:** `npm run dev`
-*   **Build for production:** `npm run build`
+*   **Build for production:** `npm run build` (Note: this is typically handled automatically by the backend's build process)
 *   **Preview production build:** `npm run preview`
 *   **Generate protobuf code:** `npm run gen-proto`
 

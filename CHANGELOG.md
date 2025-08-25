@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   **Frontend:**
     -   Implement both UI state and event queue in IndexedDB
 -   **Backend:** Singe server process for serving static assets and gRPC.
+-   **Syncing:** Events are synced from client to server.
 
 ## [8.0.1] - 2025-08-25
 
