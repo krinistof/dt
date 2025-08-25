@@ -21,24 +21,29 @@ async function syncLogs() {
     return;
   }
 
-  const logs = await getAllLogs();
-  if (logs.length === 0) {
+  const logsWithKeys = await getAllLogs();
+  if (logsWithKeys.length === 0) {
     return;
   }
 
-  console.log(`Attempting to sync ${logs.length} logs.`);
+  console.log(`Attempting to sync ${logsWithKeys.length} logs.`);
+  const syncedLogKeys: IDBValidKey[] = [];
 
   try {
-    for (const log of logs) {
-      const response = await LogServiceClient.log({ message:  `[${log.level}] ${log.message}` });
+    for (const { key, log } of logsWithKeys) {
+      const response = await LogServiceClient.log({ message: `[${log.level}] ${log.message}` });
       if (response.success) {
-        console.log("Successfully synced logs.");
+        syncedLogKeys.push(key);
       } else {
         console.error("Log collector reported a failure for synced logs.");
       }
     }
 
-    await clearLogs();
+    if (syncedLogKeys.length > 0) {
+      await clearLogs(syncedLogKeys);
+      console.log(`Successfully synced and cleared ${syncedLogKeys.length} logs.`);
+    }
+
     if (retryTimeoutId) {
       clearTimeout(retryTimeoutId);
       retryTimeoutId = null;
