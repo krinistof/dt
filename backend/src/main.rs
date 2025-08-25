@@ -1,5 +1,9 @@
-use tonic::{transport::Server, Request, Response, Status};
-use tower_http::cors::{Any, CorsLayer};
+use axum::{routing::any_service, Router};
+use tonic::{Request, Response, Status};
+use tower_http::{
+    cors::{Any, CorsLayer},
+    services::ServeDir,
+};
 
 pub mod log {
     tonic::include_proto!("log.v1");
@@ -7,7 +11,7 @@ pub mod log {
 
 use log::{
     log_collector_service_server::{LogCollectorService, LogCollectorServiceServer},
-    LogResponse, LogRequest,
+    LogRequest, LogResponse,
 };
 
 #[derive(Debug, Default)]
@@ -15,15 +19,10 @@ pub struct LogCollector {}
 
 #[tonic::async_trait]
 impl LogCollectorService for LogCollector {
-    async fn log(
-        &self,
-        request: Request<LogRequest>,
-    ) -> Result<Response<LogResponse>, Status> {
+    async fn log(&self, request: Request<LogRequest>) -> Result<Response<LogResponse>, Status> {
         println!("Log: {}", request.get_ref().message);
 
-        let reply = LogResponse {
-            success: true,
-        };
+        let reply = LogResponse { success: true };
 
         Ok(Response::new(reply))
     }
@@ -31,27 +30,31 @@ impl LogCollectorService for LogCollector {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = "[::1]:50051".parse()?;
+    let addr = "[::1]:80".parse()?;
     let log_service = LogCollector::default();
 
-    println!("LogService listening on {addr}");
-
-    // CORS layer for gRPC-Web
-    // This allows requests from any origin, method, and header.
-    // TODO DEV ONLY
-    let cors = CorsLayer::new()
-        .allow_origin(Any) // In production, specify your frontend origin
-        .allow_methods(Any)
-        .allow_headers(Any);
+    println!("WebService listening on {addr}");
 
     let grpc_service = LogCollectorServiceServer::new(log_service);
     let grpc_web_service = tonic_web::enable(grpc_service);
 
-    Server::builder()
-        .accept_http1(true) // Important for gRPC-Web
-        .layer(cors)        // Apply CORS layer
-        .add_service(grpc_web_service) // Add the gRPC-Web enabled service
-        .serve(addr)
+    let static_files_service = any_service(ServeDir::new("../frontend/dist"));
+    let media_files_service = any_service(ServeDir::new("media"));
+
+    let app = Router::new()
+        .nest_service("/grpc", grpc_web_service)
+        .nest_service("/media", media_files_service)
+        .fallback(static_files_service)
+        .layer(
+            //TODO DEV ONLY
+            CorsLayer::new()
+                .allow_origin(Any)
+                .allow_methods(Any)
+                .allow_headers(Any),
+        );
+
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service())
         .await?;
 
     Ok(())

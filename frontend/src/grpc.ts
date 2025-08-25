@@ -4,7 +4,7 @@ import { createGrpcWebTransport } from '@connectrpc/connect-web';
 
 import { LogCollectorService } from './gen/log/v1/log_pb';
 
-const apiUrl = 'http://localhost:50051';
+const apiUrl = '/grpc';
 
 export const transport: Transport = createGrpcWebTransport({
   baseUrl: apiUrl,

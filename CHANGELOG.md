@@ -13,14 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     -   Posting
 -   **Voting System:**
     -   Voting on polls
-    -   Following live polls
--   **Privacy Features:**
-    -   End-to-end encryption of messages
-    -   Decentralized identity management
+    -   Follow live polls
 -   **Backend:**
-    -   Restricted CORS policy for production.
-    -   Singe server process for serving static assets and gRPC
-    -   Add tests.
+    -   Add tests
+
+### Finished
+
+-   **Backend:** Singe server process for serving static assets and gRPC.
 
 ## [8.0.1] - 2025-08-25
 
@@ -41,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     -   gRPC services are defined in the `.proto` files.
     -   `buf` tool is used to generate the necessary code for both the frontend and the backend.
 
-## [7.0.1] - 2025-08-24
+## [7.0.1] - 2025-06-30
 
 ### Removed
 
