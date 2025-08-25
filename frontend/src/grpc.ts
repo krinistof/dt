@@ -2,7 +2,7 @@ import { createClient, Transport } from '@connectrpc/connect';
 import { createGrpcWebTransport } from '@connectrpc/connect-web';
 
 import { LogCollectorService } from './gen/log/v1/log_pb';
-import { DtService } from './gen/dt/v1/dt_pb';
+import { Dt } from './gen/dt/v1/dt_pb';
 
 const logApiUrl = '/grpc/log';
 const dtApiUrl = '/grpc/dt';
@@ -16,4 +16,4 @@ export const dtTransport: Transport = createGrpcWebTransport({
 });
 
 export const LogServiceClient = createClient(LogCollectorService, logTransport);
-export const DtServiceClient = createClient(DtService, dtTransport);
+export const DtServiceClient = createClient(Dt, dtTransport);

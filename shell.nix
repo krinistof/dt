@@ -15,5 +15,8 @@ pkgs.mkShell {
 
     # Protobuf
     buf
+
+    # Gemini
+    gemini-cli
   ];
 }
