@@ -1,5 +1,5 @@
 import './logger';
-import { syncEvents } from './sync';
+import { syncInitialState, syncEvents } from './sync';
 import { addEvent, getAllPosts, putPost, Post } from './idb';
 
 const postsContainer = document.getElementById('posts-container') as HTMLDivElement;
@@ -64,9 +64,11 @@ postForm.addEventListener('submit', async (e) => {
   renderPosts();
   
   await addEvent({
+    client_key: crypto.randomUUID(),
     user_token,
     action: 'post',
-    payload: { content },
+    payload: { content_hash, content },
+    created_at: Date.now(),
   });
   syncEvents();
   await putPost(newPost);
@@ -107,9 +109,11 @@ postsContainer.addEventListener('change', async (e) => {
     renderPosts();
     
     await addEvent({
+      client_key: crypto.randomUUID(),
       user_token,
       action: 'vote',
       payload: { content_hash, score: user_score },
+      created_at: Date.now(),
     });
     syncEvents();
     await putPost(postToUpdate);
@@ -143,8 +147,13 @@ function initializeUserToken() {
 }
 
 async function init() {
+  window.addEventListener('datachanged', loadPosts);
   initializeUserToken();
+  await syncInitialState();
   await loadPosts();
+  await syncEvents();
+
+  setInterval(syncEvents, 5000);
 }
 
 init();

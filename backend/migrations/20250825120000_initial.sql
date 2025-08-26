@@ -15,3 +15,11 @@ CREATE TABLE posts (
     content TEXT NOT NULL,
     last_updated TIMESTAMP NOT NULL
 );
+
+CREATE TABLE votes (
+    post_id TEXT NOT NULL,
+    user_token TEXT NOT NULL,
+    decision INTEGER NOT NULL CHECK (decision >= -127 AND decision <= 128),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    PRIMARY KEY (post_id, user_token)
+);

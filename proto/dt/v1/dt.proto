@@ -6,6 +6,15 @@ message Event {
     string client_key = 1;
     string action = 2;
     string payload = 3;
+    int64 created_at = 4;
+}
+
+message Post {
+    string post_id = 1;
+    string content = 2;
+    int64 last_updated = 3;
+    sint32 base_score = 4;
+    sint32 user_score = 5;
 }
 
 message SubmitEventRequest {
@@ -17,6 +26,27 @@ message SubmitEventResponse {
     bool success = 1;
 }
 
+message GetInitialStateRequest {
+    string user_token = 1;
+}
+
+message GetInitialStateResponse {
+    repeated Post posts = 1;
+    int64 server_timestamp = 2;
+}
+
+message SyncEventsRequest {
+    string user_token = 1;
+    int64 since_timestamp = 2;
+}
+
+message SyncEventsResponse {
+    repeated Event events = 1;
+    int64 server_timestamp = 2;
+}
+
 service Dt {
     rpc SubmitEvent(SubmitEventRequest) returns (SubmitEventResponse);
+    rpc GetInitialState(GetInitialStateRequest) returns (GetInitialStateResponse);
+    rpc SyncEvents(SyncEventsRequest) returns (SyncEventsResponse);
 }
