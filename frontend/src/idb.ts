@@ -19,9 +19,11 @@ export class Post {
 }
 
 export interface Event {
+  client_key: string;
   user_token: string;
   action: 'post' | 'vote';
   payload: { [key: string]: any };
+  created_at: number;
 }
 
 
@@ -154,6 +156,27 @@ export async function putPost(post: Post) {
   const store = transaction.objectStore('posts');
   // IndexedDB stores plain objects, so we convert the class instance back
   store.put(JSON.parse(JSON.stringify(post)));
+}
+
+export async function getPost(content_hash: string): Promise<Post | null> {
+    return new Promise(async (resolve, reject) => {
+        const db = await getDb();
+        const transaction = db.transaction('posts', 'readonly');
+        const store = transaction.objectStore('posts');
+        const request = store.get(content_hash);
+
+        request.onerror = () => {
+            reject('Error getting post from IndexedDB');
+        };
+
+        request.onsuccess = () => {
+            if (request.result) {
+                resolve(new Post(request.result));
+            } else {
+                resolve(null);
+            }
+        };
+    });
 }
 
 export async function getAllPosts(): Promise<Post[]> {

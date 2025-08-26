@@ -11,16 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   **Voting System:**
     -   Follow live polls
--   **Syncing:**
-    -   Implement initial state sync for posts.
-    -   Implement delta sync for new events.
 -   **Backend:**
-    -   Add `votes` table to the database.
     -   Add tests
 
 ### Finished
 
+-   **Syncing:**
+    -   Implement delta sync for new events.
+    -   Implement initial state sync for posts.
 -   **Backend:**
+    -   Add `votes` table to the database.
     -   Implement event submission service
 -   **Frontend:**
     -   Update frontend to use the new event submission service.
