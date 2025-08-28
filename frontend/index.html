@@ -2,23 +2,58 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <title>Democratic Tier</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        line-height: 1.6;
+        margin: 0;
+        padding: 20px;
+        background-color: #f4f4f4;
+        color: #333;
+        -webkit-user-select: none; /* Safari */
+        -ms-user-select: none; /* IE 10 and IE 11 */
+        user-select: none; /* Standard syntax */
+      }
+      .container {
+        max-width: 800px;
+        margin: auto;
+        overflow: hidden;
+      }
+      #search-bar {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 20px;
+        box-sizing: border-box;
+      }
+      .post {
+        background: #fff;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+      }
+      .message-container {
+        padding: 10px;
+        margin-bottom: 20px;
+        background-color: #ffebee;
+        color: #c62828;
+        border: 1px solid #c62828;
+        border-radius: 5px;
+        display: none; /* Hidden by default */
+      }
+    </style>
   </head>
   <body>
-    <h1>Democratic Tier</h1>
-    
-    <form id="post-form">
-      <textarea id="post-content" rows="4" cols="50" placeholder="What's on your mind?"></textarea>
-      <br>
-      <button type="submit">Post</button>
-    </form>
-
-    <hr>
-
-    <h2>Posts</h2>
-    <div id="posts-container"></div>
+    <div class="container">
+      <div id="message-container" class="message-container"></div>
+      <input type="text" id="search-bar" placeholder="Search...">
+      <h1>Democratic Tier</h1>
+      <hr>
+      <div id="posts-container"></div>
+    </div>
 
     <script type="module" src="/src/app.ts"></script>
   </body>
 </html>
+

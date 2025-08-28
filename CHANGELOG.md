@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [8.2.1] - Unreleased
 
 ### Planned
+-   **Frontend:**
+    -   Implement a search feedback mechanism. When a search is active, a button will appear offering assistance. If clicked, it will log the user's search query to the server for analysis and display a helpful message to the user.
 -   **Backend:**
     -   Profile SQLite service and add indices based on access patterns
     -   Add tests
@@ -28,16 +30,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     -   Integrate with Grafana
 
 
-## [8.2.0] - Work in progress
+## [8.2.0] - 2025-08-28
 
 ### Planned
--   **Posts:** Support multi-media posts defined by JSON, content accessible via URL
--   **Frontend:** Apply UX experiences from previuos versions:
-    -   Simple to use design with search bar on the top
-    -   Broad support of deployed CSS for most browsers, mobiles 
-    -   Low code size for deployed CSS, JS
-    -   Disable content redrawing when user interacts with cooldown
-    -   Prevent resizing, text selection when interacting from mobile
+-   **Backend:** 
+    -   Change default logging level to info
+    -   Behind cargo feature implement music scanner which keeps posts table up to date with songs from media
+-   **Frontend:** 
+    -   Apply UX experiences from previuos versions:
+        -   Disable content redrawing when user interacts with cooldown
+        -   Prevent resizing, text selection when interacting from mobile
+        -   Low code size by minifying for deployed CSS, JS
+        -   Add X to search bar to clear text
+        -   Change scoring from slider to something with effort-to-reach extremes
+
+### Finished
+-   **Posts:** Initial support for music posts defined by JSON, with content accessible via URL.
+-   **Frontend:** 
+    -   Removed posting from the UI.
+    -   Added a simple design with a search bar on top
+    -   Hid text-based score feedback from the user
+    -   Ensured broad CSS support for most browsers and mobile devices
+-   **Backend:**
+    -   Updated post handling to dynamically generate a content hash
+-   **Build System:**
+    -   Improved the build.rs to provide detailed `npm` error logs
+
 
 ## [8.1.0] - 2025-08-28
 

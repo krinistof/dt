@@ -1,5 +1,5 @@
 import { DtServiceClient } from './grpc';
-import { getAllEvents, clearEvents, putPost, getPost, Post } from './idb';
+import { getAllEvents, clearEvents, putPost, getPost, type Post } from './idb';
 
 const RETRY_TIMEOUT_MS: number = 3000;
 let retryTimeoutId: number | null = null;
@@ -56,12 +56,12 @@ export async function syncInitialState() {
         const response = await DtServiceClient.getInitialState({ userToken });
         
         for (const post of response.posts) {
-            await putPost(new Post({
-                content_hash: post.postId,
+            await putPost({
+                post_id: post.postId,
                 content: post.content,
                 base_score: post.baseScore,
                 user_score: post.userScore,
-            }));
+            });
         }
         
         localStorage.setItem('last_sync_timestamp', response.serverTimestamp.toString());
@@ -96,12 +96,12 @@ export async function syncEvents() {
             for (const event of response.events) {
                 const payload = JSON.parse(event.payload);
                 if (event.action === 'post') {
-                    const post = new Post({
-                        content_hash: payload.content_hash,
+                    const post: Post = {
+                        post_id: payload.content_hash,
                         content: payload.content,
                         base_score: 0,
                         user_score: 0,
-                    });
+                    };
                     await putPost(post);
                 } else if (event.action === 'score_update') {
                     const post = await getPost(payload.post_id);
@@ -155,4 +155,3 @@ function handleSyncError(error: unknown, retryFunction: () => void) {
 window.addEventListener('online', () => {
     syncEvents();
 });
-

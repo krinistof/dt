@@ -15,7 +15,6 @@
     "@connectrpc/connect": "^2.0.2",
     "@connectrpc/connect-web": "^2.0.2",
     "@types/uuid": "^10.0.0",
-    "js-sha256": "^0.11.1",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

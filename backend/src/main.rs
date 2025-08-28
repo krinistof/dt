@@ -1,6 +1,7 @@
 use anyhow::Result;
 use axum::{routing::any_service, Router};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use tonic::{Request, Response, Status};
 use tower_http::{
     cors::{Any, CorsLayer},
@@ -58,7 +59,6 @@ impl DtService {
 
 #[derive(Debug, Deserialize)]
 struct PostPayload {
-    content_hash: String,
     content: String,
 }
 
@@ -96,7 +96,10 @@ impl Dt for DtService {
                 "post" => {
                     let payload: PostPayload = serde_json::from_str(&event.payload)
                         .map_err(|e| Status::invalid_argument(e.to_string()))?;
-                    db::insert_post(&self.db, &payload.content_hash, &payload.content)
+                    let mut hasher = Sha256::new();
+                    hasher.update(payload.content.as_bytes());
+                    let content_hash = format!("{:x}", hasher.finalize());
+                    db::insert_post(&self.db, &content_hash, &payload.content)
                         .await
                         .map_err(|e| Status::internal(e.to_string()))?;
                     db::insert_event(&self.db, &event)

@@ -1,21 +1,10 @@
 // --- Type Definitions ---
 
-export class Post {
-  content_hash: string;
+export interface Post {
+  post_id: string;
   content: string;
   base_score: number;
   user_score: number;
-
-  constructor(data: { content_hash: string; content: string; base_score: number; user_score: number; }) {
-    this.content_hash = data.content_hash;
-    this.content = data.content;
-    this.base_score = data.base_score;
-    this.user_score = data.user_score;
-  }
-
-  get totalScore(): number {
-    return this.base_score + this.user_score;
-  }
 }
 
 export interface Event {
@@ -63,7 +52,7 @@ function getDb(): Promise<IDBDatabase> {
         db.createObjectStore('logs', { autoIncrement: true });
       }
       if (!db.objectStoreNames.contains('posts')) {
-        db.createObjectStore('posts', { keyPath: 'content_hash' });
+        db.createObjectStore('posts', { keyPath: 'post_id' });
       }
       if (!db.objectStoreNames.contains('events')) {
         db.createObjectStore('events', { autoIncrement: true });
@@ -162,16 +151,15 @@ export async function putPost(post: Post) {
   const db = await getDb();
   const transaction = db.transaction('posts', 'readwrite');
   const store = transaction.objectStore('posts');
-  // IndexedDB stores plain objects, so we convert the class instance back
-  store.put(JSON.parse(JSON.stringify(post)));
+  store.put(post);
 }
 
-export function getPost(content_hash: string): Promise<Post | null> {
+export function getPost(post_id: string): Promise<Post | null> {
     return new Promise((resolve, reject) => {
         getDb().then(db => {
             const transaction = db.transaction('posts', 'readonly');
             const store = transaction.objectStore('posts');
-            const request = store.get(content_hash);
+            const request = store.get(post_id);
 
             request.onerror = () => {
                 reject('Error getting post from IndexedDB');
@@ -179,7 +167,7 @@ export function getPost(content_hash: string): Promise<Post | null> {
 
             request.onsuccess = () => {
                 if (request.result) {
-                    resolve(new Post(request.result));
+                    resolve(request.result);
                 } else {
                     resolve(null);
                 }
@@ -200,10 +188,7 @@ export function getAllPosts(): Promise<Post[]> {
             };
 
             request.onsuccess = () => {
-                const postsData = request.result;
-                // Convert plain objects from DB to Post class instances
-                const postInstances = postsData.map(data => new Post(data));
-                resolve(postInstances);
+                resolve(request.result);
             };
         }).catch(reject);
     });

@@ -364,8 +364,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1aaf95b3e5c8f23aa320147307562d361db0ae0d51242340f558153b4eb2439b"
 
 [[package]]
-name = "dt-backend"
-version = "0.1.0"
+name = "dt"
+version = "8.1.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -373,6 +373,7 @@ dependencies = [
  "prost",
  "serde",
  "serde_json",
+ "sha2",
  "sqlx",
  "tokio",
  "tonic",
