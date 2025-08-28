@@ -2,7 +2,7 @@ import './logger';
 import { v4 as uuidv4 } from 'uuid';
 import { syncInitialState, syncEvents } from './sync';
 import { addEvent, getAllPosts, putPost, Post } from './idb';
-// @ts-ignore
+// @ts-expect-error js-sha256 is not typed
 import { sha256 } from 'js-sha256';
 
 const postsContainer = document.getElementById('posts-container') as HTMLDivElement;
