@@ -1,23 +1,20 @@
 import './logger';
+import { v4 as uuidv4 } from 'uuid';
 import { syncInitialState, syncEvents } from './sync';
 import { addEvent, getAllPosts, putPost, Post } from './idb';
+// @ts-ignore
+import { sha256 } from 'js-sha256';
 
 const postsContainer = document.getElementById('posts-container') as HTMLDivElement;
 const postForm = document.getElementById('post-form') as HTMLFormElement;
 const postContent = document.getElementById('post-content') as HTMLTextAreaElement;
-
 let user_token: string;
 let posts: Post[] = [];
 
 // --- Hashing ---
 
 async function hashContent(content: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(content);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  return hashHex;
+  return sha256(content);
 }
 
 // --- UI Rendering ---
@@ -64,7 +61,7 @@ postForm.addEventListener('submit', async (e) => {
   renderPosts();
   
   await addEvent({
-    client_key: crypto.randomUUID(),
+    client_key: uuidv4(),
     user_token,
     action: 'post',
     payload: { content_hash, content },
@@ -109,7 +106,7 @@ postsContainer.addEventListener('change', async (e) => {
     renderPosts();
     
     await addEvent({
-      client_key: crypto.randomUUID(),
+      client_key: uuidv4(),
       user_token,
       action: 'vote',
       payload: { content_hash, score: user_score },
@@ -128,8 +125,9 @@ async function loadPosts() {
 }
 
 function initializeUserToken() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const tokenFromUrl = urlParams.get('st');
+  const url = window.location.href;
+  const match = url.match(/[?&]st=([^&]+)/);
+  const tokenFromUrl = match ? match[1] : null;
 
   if (tokenFromUrl) {
     localStorage.setItem('user_token', tokenFromUrl);

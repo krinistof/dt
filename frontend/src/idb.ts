@@ -22,8 +22,14 @@ export interface Event {
   client_key: string;
   user_token: string;
   action: 'post' | 'vote';
-  payload: { [key: string]: any };
+  payload: { [key: string]: unknown };
   created_at: number;
+}
+
+export interface Log {
+  level: string;
+  message: string;
+  timestamp: string;
 }
 
 
@@ -68,34 +74,35 @@ function getDb(): Promise<IDBDatabase> {
 
 // --- Log Functions ---
 
-export async function addLog(log: any) {
+export async function addLog(log: Log) {
   const db = await getDb();
   const transaction = db.transaction('logs', 'readwrite');
   const store = transaction.objectStore('logs');
   store.add(log);
 }
 
-export async function getAllLogs(): Promise<{ key: IDBValidKey; log: any }[]> {
-    return new Promise(async (resolve, reject) => {
-        const db = await getDb();
-        const transaction = db.transaction('logs', 'readonly');
-        const store = transaction.objectStore('logs');
-        const request = store.openCursor();
-        const logs: { key: IDBValidKey; log: any }[] = [];
+export function getAllLogs(): Promise<{ key: IDBValidKey; log: Log }[]> {
+    return new Promise((resolve, reject) => {
+        getDb().then(db => {
+            const transaction = db.transaction('logs', 'readonly');
+            const store = transaction.objectStore('logs');
+            const request = store.openCursor();
+            const logs: { key: IDBValidKey; log: Log }[] = [];
 
-        request.onerror = () => {
-            reject('Error getting logs from IndexedDB');
-        };
+            request.onerror = () => {
+                reject('Error getting logs from IndexedDB');
+            };
 
-        request.onsuccess = () => {
-            const cursor = request.result;
-            if (cursor) {
-                logs.push({ key: cursor.key, log: cursor.value });
-                cursor.continue();
-            } else {
-                resolve(logs);
-            }
-        };
+            request.onsuccess = () => {
+                const cursor = request.result;
+                if (cursor) {
+                    logs.push({ key: cursor.key, log: cursor.value });
+                    cursor.continue();
+                } else {
+                    resolve(logs);
+                }
+            };
+        }).catch(reject);
     });
 }
 
@@ -117,27 +124,28 @@ export async function addEvent(event: Event) {
   store.add(event);
 }
 
-export async function getAllEvents(): Promise<{ key: IDBValidKey; event: any }[]> {
-    return new Promise(async (resolve, reject) => {
-        const db = await getDb();
-        const transaction = db.transaction('events', 'readonly');
-        const store = transaction.objectStore('events');
-        const request = store.openCursor();
-        const events: { key: IDBValidKey; event: any }[] = [];
+export function getAllEvents(): Promise<{ key: IDBValidKey; event: Event }[]> {
+    return new Promise((resolve, reject) => {
+        getDb().then(db => {
+            const transaction = db.transaction('events', 'readonly');
+            const store = transaction.objectStore('events');
+            const request = store.openCursor();
+            const events: { key: IDBValidKey; event: Event }[] = [];
 
-        request.onerror = () => {
-            reject('Error getting events from IndexedDB');
-        };
+            request.onerror = () => {
+                reject('Error getting events from IndexedDB');
+            };
 
-        request.onsuccess = () => {
-            const cursor = request.result;
-            if (cursor) {
-                events.push({ key: cursor.key, event: cursor.value });
-                cursor.continue();
-            } else {
-                resolve(events);
-            }
-        };
+            request.onsuccess = () => {
+                const cursor = request.result;
+                if (cursor) {
+                    events.push({ key: cursor.key, event: cursor.value });
+                    cursor.continue();
+                } else {
+                    resolve(events);
+                }
+            };
+        }).catch(reject);
     });
 }
 
@@ -158,43 +166,45 @@ export async function putPost(post: Post) {
   store.put(JSON.parse(JSON.stringify(post)));
 }
 
-export async function getPost(content_hash: string): Promise<Post | null> {
-    return new Promise(async (resolve, reject) => {
-        const db = await getDb();
-        const transaction = db.transaction('posts', 'readonly');
-        const store = transaction.objectStore('posts');
-        const request = store.get(content_hash);
+export function getPost(content_hash: string): Promise<Post | null> {
+    return new Promise((resolve, reject) => {
+        getDb().then(db => {
+            const transaction = db.transaction('posts', 'readonly');
+            const store = transaction.objectStore('posts');
+            const request = store.get(content_hash);
 
-        request.onerror = () => {
-            reject('Error getting post from IndexedDB');
-        };
+            request.onerror = () => {
+                reject('Error getting post from IndexedDB');
+            };
 
-        request.onsuccess = () => {
-            if (request.result) {
-                resolve(new Post(request.result));
-            } else {
-                resolve(null);
-            }
-        };
+            request.onsuccess = () => {
+                if (request.result) {
+                    resolve(new Post(request.result));
+                } else {
+                    resolve(null);
+                }
+            };
+        }).catch(reject);
     });
 }
 
-export async function getAllPosts(): Promise<Post[]> {
-    return new Promise(async (resolve, reject) => {
-        const db = await getDb();
-        const transaction = db.transaction('posts', 'readonly');
-        const store = transaction.objectStore('posts');
-        const request = store.getAll();
+export function getAllPosts(): Promise<Post[]> {
+    return new Promise((resolve, reject) => {
+        getDb().then(db => {
+            const transaction = db.transaction('posts', 'readonly');
+            const store = transaction.objectStore('posts');
+            const request = store.getAll();
 
-        request.onerror = () => {
-            reject('Error getting posts from IndexedDB');
-        };
+            request.onerror = () => {
+                reject('Error getting posts from IndexedDB');
+            };
 
-        request.onsuccess = () => {
-            const postsData = request.result;
-            // Convert plain objects from DB to Post class instances
-            const postInstances = postsData.map(data => new Post(data));
-            resolve(postInstances);
-        };
+            request.onsuccess = () => {
+                const postsData = request.result;
+                // Convert plain objects from DB to Post class instances
+                const postInstances = postsData.map(data => new Post(data));
+                resolve(postInstances);
+            };
+        }).catch(reject);
     });
 }
