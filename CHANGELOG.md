@@ -5,36 +5,57 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [8.1.0] - Unreleased
+## [Unreleased]
 
 ### Planned
 
--   **Voting System:**
-    -   Follow live polls
+## [8.3.0] - Unreleased
+
+### Planned
+-   **CI/CD:** Create static built binary releases for various platforms using GitHub Actions
+-   **Build System:** Implement a build system using Nix
+-   **Deployment:** Create Docker containers from the Nix build
+-   **Architecture:** Abstract database, hosting, and content delivery for future flexibility (e.g., PostgreSQL, cloud functions)
+
+## [8.2.1] - Unreleased
+
+### Planned
 -   **Backend:**
+    -   Profile SQLite service and add indices based on access patterns
     -   Add tests
--   **Frontend:**
-    -   Address lint findings for browser compatibility and best practices.
+-   **Monitoring:**
+    -   Set up circular logging
+    -   Integrate with Grafana
+
+
+## [8.2.0] - Work in progress
+
+### Planned
+-   **Posts:** Support multi-media posts defined by JSON, content accessible via URL
+-   **Frontend:** Apply UX experiences from previuos versions:
+    -   Simple to use design with search bar on the top
+    -   Broad support of deployed CSS for most browsers, mobiles 
+    -   Low code size for deployed CSS, JS
+    -   Disable content redrawing when user interacts with cooldown
+    -   Prevent resizing, text selection when interacting from mobile
+
+## [8.1.0] - 2025-08-28
 
 ### Finished
 
--   **Frontend:** Replaced Web Crypto API with `js-sha256` to ensure hashing works in non-secure (HTTP) contexts, improving compatibility with mobile browsers on local networks.
--   **Syncing:**
-    -   Implement delta sync for new events.
-    -   Implement initial state sync for posts.
+-   **Network Syncing:**
+    -   Implemented differential sync for new events
+    -   Implemented initial state sync for posts
 -   **Backend:**
-    -   Add `votes` table to the database.
-    -   Implement event submission service
+    -   Added `votes` table to the database
+    -   Updated to monolith server process for serving static assets and gRPC in parallel
 -   **Frontend:**
-    -   Update frontend to use the new event submission service.
--   **Social Media Features:**
-    -   Posting
--   **Voting System:**
-    -   Voting on polls
--   **Frontend:**
-    -   Implement both UI state and event queue in IndexedDB
--   **Backend:** Singe server process for serving static assets and gRPC.
--   **Syncing:** Events are synced from client to server.
+    -   Addressed lint findings for browser compatibility and best practices
+    -   Improved compatibility with replacting hashing with package for non-secure contexts
+    -   Implemented both UI state and event queue in IndexedDB
+-   **Platform:**
+    -   Added text posting
+    -   Implemented voting with anonymized public results
 
 ## [8.0.1] - 2025-08-25
 
