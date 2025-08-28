@@ -230,7 +230,7 @@ async fn main() -> Result<()> {
         .with(tracing_subscriber::fmt::layer().json())
         .init();
 
-    let addr = "[::1]:80".parse()?;
+    let addr = "0.0.0.0:80".parse()?;
     let log_service = LogCollector::default();
     let db = db::new().await?;
     let dt_service = DtService::new(db);
