@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     -   Follow live polls
 -   **Backend:**
     -   Add tests
+-   **Frontend:**
+    -   Address lint findings for browser compatibility and best practices.
 
 ### Finished
 
