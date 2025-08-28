@@ -49,21 +49,19 @@ async function syncLogs() {
       retryTimeoutId = null;
     }
   } catch (error) {
-    let isFetchError = false;
+    let isNetworkError = false;
     if (error instanceof Error) {
-      // Check the main error message
-      if (error.message.toLowerCase().includes('failed to fetch')) {
-        isFetchError = true;
-      }
-      // Safely check the cause for newer browsers/error-wrapping libraries
-      if (!isFetchError && error.cause instanceof Error) {
-        if (error.cause.message.toLowerCase().includes('failed to fetch')) {
-          isFetchError = true;
-        }
+      const errorMessage = error.message.toLowerCase();
+      const errorCause = error.cause instanceof Error ? error.cause.message.toLowerCase() : "";
+
+      if (errorMessage.includes('failed to fetch') || errorMessage.includes('load failed')) {
+        isNetworkError = true;
+      } else if (errorCause.includes('failed to fetch')) {
+        isNetworkError = true;
       }
     }
 
-    if (isFetchError) {
+    if (isNetworkError) {
       console.info("Failed to sync logs to the collector due to a network error.");
     } else {
       console.error("Failed to sync logs to the collector:", error);
