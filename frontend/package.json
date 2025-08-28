@@ -1,6 +1,6 @@
 {
   "name": "dt-frontend",
-  "version": "0.0.1",
+  "version": "8.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -33,7 +33,7 @@
     "typescript-eslint": "^8.41.0",
     "vite": "^6.3.5"
   },
-  "description": "Local first client for dt voting system",
+  "description": "Local first client for dt platform",
   "main": "index.js",
   "author": "Ifa <kristof@mntr.dev>",
   "license": "MIT",
