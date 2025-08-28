@@ -86,7 +86,7 @@ async function syncLogs() {
  * @param error The error object to format.
  * @returns A string representation of the error.
  */
-function formatError(error: any): string {
+function formatError(error: unknown): string {
   if (error instanceof Error && error.stack) {
     return error.stack;
   }
@@ -111,7 +111,7 @@ window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => 
 
 // Override console.warn
 const originalWarn = console.warn;
-console.warn = (...args: any[]) => {
+console.warn = (...args: unknown[]) => {
   originalWarn.apply(console, args);
   logToServer('WARN', args.map(arg => String(arg)).join(' '));
 };
@@ -119,7 +119,7 @@ console.warn = (...args: any[]) => {
 // Override console.error (optional, as uncaught errors are already handled)
 // This can be useful for logging errors that are caught but still logged with console.error
 const originalError = console.error;
-console.error = (...args: any[]) => {
+console.error = (...args: unknown[]) => {
   originalError.apply(console, args);
   // Avoid double-logging errors caught by the global error handler
   if (args[0] && !(args[0] instanceof Error)) {

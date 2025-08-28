@@ -122,7 +122,7 @@ export async function syncEvents() {
     }
 }
 
-function handleSyncError(error: any, retryFunction: () => void) {
+function handleSyncError(error: unknown, retryFunction: () => void) {
     let isFetchError = false;
     if (error instanceof Error) {
         if (error.message.toLowerCase().includes('failed to fetch')) {

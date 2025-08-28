@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Finished
 
+-   **Frontend:** Replaced Web Crypto API with `js-sha256` to ensure hashing works in non-secure (HTTP) contexts, improving compatibility with mobile browsers on local networks.
 -   **Syncing:**
     -   Implement delta sync for new events.
     -   Implement initial state sync for posts.
