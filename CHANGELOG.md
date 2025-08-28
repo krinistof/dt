@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   **Build System:** Implement a build system using Nix
 -   **Deployment:** Create Docker containers from the Nix build
 -   **Architecture:** Abstract database, hosting, and content delivery for future flexibility (e.g., PostgreSQL, cloud functions)
+-   **Backend:** Implement a dynamic media scanner that detects and processes music from newly mounted drives.
 
 ## [8.2.1] - Unreleased
 
@@ -30,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     -   Integrate with Grafana
 
 
-## [8.2.0] - 2025-08-28
+## [8.2.0] - Work in Progress
 
 ### Planned
 -   **Backend:** 
@@ -38,14 +39,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     -   Behind cargo feature implement music scanner which keeps posts table up to date with songs from media
 -   **Frontend:** 
     -   Apply UX experiences from previuos versions:
-        -   Disable content redrawing when user interacts with cooldown
+        -   Disable content redrawing when user interacts with cooldown, add some indicator of new content instead
         -   Prevent resizing, text selection when interacting from mobile
         -   Low code size by minifying for deployed CSS, JS
         -   Add X to search bar to clear text
         -   Change scoring from slider to something with effort-to-reach extremes
+    -   Song posts:
+        -   Handle song previews. If a new preview starts, stop the previous
 
 ### Finished
--   **Posts:** Initial support for music posts defined by JSON, with content accessible via URL.
+-   **Posts:** Initial support for music posts defined by JSON, with content accessible via URL
 -   **Frontend:** 
     -   Removed posting from the UI.
     -   Added a simple design with a search bar on top

@@ -1,8 +1,10 @@
 # Project Overview
 
-This project is a backend service for collecting logs. It is built with Rust and uses the tonic library to implement a gRPC-web service.
+This project is the backend service for Democratic Tier (dt). It is built with Rust and uses `tonic` to implement gRPC-web services and `axum` to serve the frontend application.
 
-The service exposes a single endpoint, `log`, which accepts a log message and returns a success status. The service is configured with CORS to allow requests from any origin, which is useful for development but should be restricted in production.
+The backend provides two main gRPC services:
+- **LogCollectorService**: A simple service for collecting client-side logs.
+- **DtService**: The core service for the social media and voting system, handling posts, votes, and synchronization of events with clients.
 
 ## Building and Running
 
@@ -29,11 +31,7 @@ To run the service, use the following command:
 cargo run
 ```
 
-The service will start and listen on `[::1]:50051`.
-
-### Testing
-
-There are no tests in this project yet.
+The service will start and listen on `0.0.0.0:80`.
 
 ## Development Conventions
 
@@ -41,7 +39,7 @@ The project follows standard Rust conventions. The code is formatted using `rust
 
 ### Protobuf
 
-The gRPC service is defined in the `proto/log/v1/log.proto` file. The Rust code for the service is generated automatically by the `build.rs` script.
+The gRPC services are defined in the `.proto` files in the `proto` directory. The Rust code for the services is generated automatically by the `build.rs` script. The main service definition is in `proto/dt/v1/dt.proto`. The build script also builds the frontend via npm commands ready to be served.
 
 To regenerate the Rust code after changing the protobuf definition, simply build the project again:
 

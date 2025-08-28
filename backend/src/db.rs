@@ -32,22 +32,30 @@ pub async fn insert_event(db: &Db, event: &Event) -> Result<()> {
     .await?;
 
     if result.rows_affected() == 0 {
-        tracing::warn!(event_id = event.client_key, "Attempted to insert a duplicate event, ignoring.");
+        tracing::warn!(
+            event_id = event.client_key,
+            "Attempted to insert a duplicate event, ignoring."
+        );
     }
 
     Ok(())
 }
 
 pub async fn insert_post(db: &Db, post_id: &str, content: &str) -> Result<()> {
-    let result = sqlx::query("INSERT OR IGNORE INTO posts (post_id, content, last_updated) VALUES (?, ?, ?)")
-        .bind(post_id)
-        .bind(content)
-        .bind(chrono::Utc::now().timestamp())
-        .execute(db)
-        .await?;
+    let result = sqlx::query(
+        "INSERT OR IGNORE INTO posts (post_id, content, last_updated) VALUES (?, ?, ?)",
+    )
+    .bind(post_id)
+    .bind(content)
+    .bind(chrono::Utc::now().timestamp())
+    .execute(db)
+    .await?;
 
     if result.rows_affected() == 0 {
-        tracing::warn!(post_id = post_id, "Attempted to insert a duplicate post, ignoring.");
+        tracing::warn!(
+            post_id = post_id,
+            "Attempted to insert a duplicate post, ignoring."
+        );
     }
 
     Ok(())
@@ -67,10 +75,11 @@ pub async fn insert_vote(db: &Db, post_id: &str, user_token: &str, decision: i32
 }
 
 pub async fn get_total_score(db: &Db, post_id: &str) -> Result<i64> {
-    let result: (i64,) = sqlx::query_as("SELECT COALESCE(SUM(decision), 0) FROM votes WHERE post_id = ?")
-        .bind(post_id)
-        .fetch_one(db)
-        .await?;
+    let result: (i64,) =
+        sqlx::query_as("SELECT COALESCE(SUM(decision), 0) FROM votes WHERE post_id = ?")
+            .bind(post_id)
+            .fetch_one(db)
+            .await?;
     Ok(result.0)
 }
 

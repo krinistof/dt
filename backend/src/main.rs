@@ -1,16 +1,14 @@
 use anyhow::Result;
-use axum::{routing::any_service, Router};
+use axum::{Router, routing::any_service};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use tonic::{Request, Response, Status};
-use tower_http::{
-    cors::{Any, CorsLayer},
-    services::ServeDir,
-};
+use tower_http::services::ServeDir;
 use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod db;
+mod scanner;
 
 pub mod log {
     tonic::include_proto!("log.v1");
@@ -21,14 +19,14 @@ pub mod dt {
 }
 
 use log::{
-    log_collector_service_server::{LogCollectorService, LogCollectorServiceServer},
     LogRequest, LogResponse,
+    log_collector_service_server::{LogCollectorService, LogCollectorServiceServer},
 };
 
 use dt::{
-    dt_server::{Dt, DtServer},
     Event, GetInitialStateRequest, GetInitialStateResponse, Post, SubmitEventRequest,
     SubmitEventResponse, SyncEventsRequest, SyncEventsResponse,
+    dt_server::{Dt, DtServer},
 };
 
 #[derive(Debug, Default)]
@@ -109,14 +107,9 @@ impl Dt for DtService {
                 "vote" => {
                     let payload: VotePayload = serde_json::from_str(&event.payload)
                         .map_err(|e| Status::invalid_argument(e.to_string()))?;
-                    db::insert_vote(
-                        &self.db,
-                        &payload.content_hash,
-                        &user_token,
-                        payload.score,
-                    )
-                    .await
-                    .map_err(|e| Status::internal(e.to_string()))?;
+                    db::insert_vote(&self.db, &payload.content_hash, &user_token, payload.score)
+                        .await
+                        .map_err(|e| Status::internal(e.to_string()))?;
 
                     let total_score = db::get_total_score(&self.db, &payload.content_hash)
                         .await
@@ -132,7 +125,7 @@ impl Dt for DtService {
                         action: "score_update".to_string(),
                         payload: serde_json::to_string(&score_update_payload)
                             .map_err(|e| Status::internal(e.to_string()))?,
-                        created_at: 0,
+                        created_at: chrono::Utc::now().timestamp_millis(),
                     };
 
                     db::insert_event(&self.db, &score_update_event)
@@ -228,7 +221,7 @@ impl Dt for DtService {
 async fn main() -> Result<()> {
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(
-            std::env::var("RUST_LOG").unwrap_or_else(|_| "dt_backend=debug,tower_http=debug".into()),
+            std::env::var("RUST_LOG").unwrap_or_else(|_| "dt=info,tower_http=info".into()),
         ))
         .with(tracing_subscriber::fmt::layer().json())
         .init();
@@ -236,7 +229,13 @@ async fn main() -> Result<()> {
     let addr = "0.0.0.0:80".parse()?;
     let log_service = LogCollector::default();
     let db = db::new().await?;
-    let dt_service = DtService::new(db);
+    let dt_service = DtService::new(db.clone());
+
+    tokio::spawn(async move {
+        if let Err(e) = scanner::scan_media_dir(&db).await {
+            tracing::error!("Failed to scan media directory: {}", e);
+        }
+    });
 
     info!("WebService listening on {}", addr);
 
@@ -253,14 +252,7 @@ async fn main() -> Result<()> {
         .nest_service("/grpc/log", log_grpc_web_service)
         .nest_service("/grpc/dt", dt_grpc_web_service)
         .nest_service("/media", media_files_service)
-        .fallback(static_files_service)
-        .layer(
-            //TODO DEV ONLY
-            CorsLayer::new()
-                .allow_origin(Any)
-                .allow_methods(Any)
-                .allow_headers(Any),
-        );
+        .fallback(static_files_service);
 
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
