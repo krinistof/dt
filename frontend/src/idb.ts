@@ -193,3 +193,10 @@ export function getAllPosts(): Promise<Post[]> {
         }).catch(reject);
     });
 }
+
+export async function clearPosts() {
+    const db = await getDb();
+    const transaction = db.transaction('posts', 'readwrite');
+    const store = transaction.objectStore('posts');
+    store.clear();
+}

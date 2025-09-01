@@ -1,5 +1,5 @@
 import { DtServiceClient } from './grpc';
-import { getAllEvents, clearEvents, putPost, getPost, type Post } from './idb';
+import { getAllEvents, clearEvents, putPost, getPost, clearPosts, type Post } from './idb';
 
 const RETRY_TIMEOUT_MS: number = 3000;
 let retryTimeoutId: number | null = null;
@@ -52,6 +52,7 @@ export async function syncInitialState() {
     }
 
     try {
+        await clearPosts();
         console.log('Attempting to sync initial state...');
         const response = await DtServiceClient.getInitialState({ userToken });
         

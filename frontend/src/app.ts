@@ -32,7 +32,7 @@ function renderPosts() {
       if (musicData && musicData.type === 'music') {
         contentHtml = `
           <h4>${musicData.title} - ${musicData.artist}</h4>
-          <audio controls src="${musicData.url}"></audio>
+          <audio controls preload="none" src="${musicData.url}"></audio>
           <p>Length: ${musicData.length}s</p>
         `;
       } else {
@@ -45,7 +45,7 @@ function renderPosts() {
     postElement.innerHTML = `
       <div>
         ${contentHtml}
-        <input type="range" min="-1" max="1" value="${post.user_score}" class="vote-slider">
+        <input type="range" min="-127" max="128" value="${post.user_score}" class="vote-slider">
       </div>
     `;
     postsContainer.appendChild(postElement);

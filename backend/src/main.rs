@@ -8,6 +8,7 @@ use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod db;
+#[cfg(feature = "scanner")]
 mod scanner;
 
 pub mod log {
@@ -226,11 +227,12 @@ async fn main() -> Result<()> {
         .with(tracing_subscriber::fmt::layer().json())
         .init();
 
-    let addr = "0.0.0.0:80".parse()?;
+    let addr = "0.0.0.0:8080".parse()?;
     let log_service = LogCollector::default();
     let db = db::new().await?;
     let dt_service = DtService::new(db.clone());
 
+    #[cfg(feature = "scanner")]
     tokio::spawn(async move {
         if let Err(e) = scanner::scan_media_dir(&db).await {
             tracing::error!("Failed to scan media directory: {}", e);
