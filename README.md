@@ -1,4 +1,4 @@
-## Democratic Tier v1.0: Local Social Multi-media
+## Democratic Tier v8.1: Local Social Multi-media
 
 What if we can make social media create connections, find common goals easier, while keeping it privacy focused, yet critically stable?
 What if we want to move past paper based votes, polls for smaller but still important decisions of local groups, even in emergencies? Paper has been used for thousands of years many reasons, mostly for it's robustness. Why don't we have stable, open source solutions for making fair group decisions? 
