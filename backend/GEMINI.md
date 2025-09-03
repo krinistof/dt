@@ -46,3 +46,7 @@ To regenerate the Rust code after changing the protobuf definition, simply build
 ```bash
 cargo build
 ```
+
+### Extensible Content
+
+To support flexible content types on the frontend without requiring constant schema changes, the backend should embed structured data (e.g., for polls or multimedia) as a JSON string within generic protobuf string fields. See the main `GEMINI.md` for more details on this project-wide convention.

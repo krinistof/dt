@@ -54,6 +54,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     -   Updated post handling to dynamically generate a content hash
 -   **Build System:**
     -   Improved the build.rs to provide detailed `npm` error logs
+-   **Thumbnails:**
+    -   **Backend:** The media scanner now identifies embedded cover art and exposes a dedicated `/thumbnail/:filename` endpoint to serve it on-demand.
+    -   **Frontend:** Music posts now display the embedded thumbnail. If no thumbnail is present, a unique, dynamically generated SVG placeholder is shown instead.
 
 
 ## [8.1.0] - 2025-08-28

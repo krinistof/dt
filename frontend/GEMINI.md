@@ -16,3 +16,4 @@ This is a local-first client for a voting system named "dt". It is written in Ty
 *   Modules are resolved using bundler mode, and path aliases are configured for `@/*` to point to the root directory.
 *   The application uses a global error handler to catch and log all uncaught exceptions and unhandled promise rejections.
 *   Console `warn` and `error` are overridden to send logs to the server.
+*   **Extensible Content:** The application handles special content types (like music posts or polls) by parsing JSON embedded in string fields from the backend. If parsing fails or the structure is incorrect, the content is rendered as plain text. See the main `GEMINI.md` for more details on this convention.

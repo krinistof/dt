@@ -1,9 +1,9 @@
 #![cfg(feature = "scanner")]
 
 use anyhow::Result;
+use lofty::file::TaggedFileExt;
 use lofty::prelude::{Accessor, AudioFile};
 use lofty::probe::Probe;
-use lofty::file::TaggedFileExt;
 use serde_json::json;
 use sha2::{Digest, Sha256};
 use std::path::Path;
@@ -17,6 +17,7 @@ struct MusicPost {
     artist: String,
     url: String,
     length: u32,
+    has_thumbnail: bool,
 }
 
 fn get_music_post(path: &Path) -> Result<MusicPost> {
@@ -46,11 +47,14 @@ fn get_music_post(path: &Path) -> Result<MusicPost> {
             .to_string_lossy()
     );
 
+    let has_thumbnail = tag.pictures().get(0).is_some();
+
     Ok(MusicPost {
         title,
         artist,
         url,
         length: duration_seconds,
+        has_thumbnail,
     })
 }
 
@@ -67,16 +71,28 @@ pub async fn scan_media_dir(db: &db::Db) -> Result<()> {
                         title,
                         artist,
                         url,
-                        length
+                        length,
+                        has_thumbnail,
                     } = music_post;
-                    let content = json!({
+
+                    let mut json_content = json!({
                         "type": "music",
                         "title": title,
                         "artist": artist,
-                        "url": url,
+                        "url": &url,
                         "length": length,
-                    })
-                    .to_string();
+                    });
+
+                    if has_thumbnail {
+                        let file_name = path
+                            .file_name()
+                            .ok_or_else(|| anyhow::anyhow!("Could not get file name"))?
+                            .to_string_lossy();
+                        json_content["thumbnail_url"] =
+                            json!(format!("/thumbnail/{}", file_name));
+                    }
+
+                    let content = json_content.to_string();
 
                     let mut hasher = Sha256::new();
                     hasher.update(content.as_bytes());

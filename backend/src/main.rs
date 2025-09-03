@@ -1,5 +1,11 @@
 use anyhow::Result;
-use axum::{Router, routing::any_service};
+use axum::{
+    extract::Path,
+    http::{header, StatusCode},
+    response::{IntoResponse, Response as AxumResponse},
+    Router, routing::{any_service, get},
+};
+use lofty::{file::TaggedFileExt, probe::Probe};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use tonic::{Request, Response, Status};
@@ -251,6 +257,7 @@ async fn main() -> Result<()> {
     let media_files_service = any_service(ServeDir::new("media"));
 
     let app = Router::new()
+        .route("/thumbnail/:filename", get(thumbnail_handler))
         .nest_service("/grpc/log", log_grpc_web_service)
         .nest_service("/grpc/dt", dt_grpc_web_service)
         .nest_service("/media", media_files_service)
@@ -261,4 +268,43 @@ async fn main() -> Result<()> {
         .await?;
 
     Ok(())
+}
+
+#[tracing::instrument]
+async fn thumbnail_handler(Path(filename): Path<String>) -> AxumResponse {
+    let path_str = format!("./media/{}", filename);
+    let path = std::path::Path::new(&path_str);
+
+    if !path.exists() {
+        return (StatusCode::NOT_FOUND, "File not found").into_response();
+    }
+
+    let tagged_file = match Probe::open(path) {
+        Ok(probe) => match probe.read() {
+            Ok(tagged_file) => tagged_file,
+            Err(e) => {
+                tracing::error!("Failed to read tags from file {:?}: {}", path, e);
+                return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to read file").into_response();
+            }
+        },
+        Err(e) => {
+            tracing::error!("Failed to open file {:?}: {}", path, e);
+            return (StatusCode::INTERNAL_SERVER_ERROR, "Failed to open file").into_response();
+        }
+    };
+
+    if let Some((data, mime_type)) = tagged_file
+        .primary_tag()
+        .and_then(|t| t.pictures().get(0))
+        .and_then(|p| p.mime_type().map(|m| (p.data(), m.to_string())))
+    {
+        (
+            StatusCode::OK,
+            [(header::CONTENT_TYPE, mime_type)],
+            data.to_vec(),
+        )
+            .into_response()
+    } else {
+        (StatusCode::NOT_FOUND, "No thumbnail found").into_response()
+    }
 }

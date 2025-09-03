@@ -18,6 +18,56 @@ function totalScore(post: Post): number {
 
 // --- UI Rendering ---
 
+function createDynamicPlaceholder(hash: string): string {
+  const hue1 = parseInt(hash.substring(0, 3), 16) % 360;
+  const hue2 = parseInt(hash.substring(3, 6), 16) % 360;
+
+  const c1Hue = parseInt(hash.substring(6, 9), 16) % 360;
+  const c1X = parseInt(hash.substring(9, 11), 16) % 100;
+  const c1Y = parseInt(hash.substring(11, 13), 16) % 100;
+  const c1R = 15 + (parseInt(hash.substring(13, 15), 16) % 10);
+
+  const c2Hue = parseInt(hash.substring(15, 18), 16) % 360;
+  const c2X = parseInt(hash.substring(18, 20), 16) % 100;
+  const c2Y = parseInt(hash.substring(20, 22), 16) % 100;
+  const c2R = 15 + (parseInt(hash.substring(22, 24), 16) % 15);
+  
+  const c3Hue = parseInt(hash.substring(24, 27), 16) % 360;
+  const c3X = parseInt(hash.substring(27, 29), 16) % 100;
+  const c3Y = parseInt(hash.substring(29, 31), 16) % 100;
+  const c3R = 15 + (parseInt(hash.substring(31, 33), 16) % 10);
+
+  const svgString = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+      <defs>
+        <linearGradient id="grad-${hash}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:hsl(${hue1}, 70%, 60%)" />
+          <stop offset="100%" style="stop-color:hsl(${hue2}, 80%, 75%)" />
+        </linearGradient>
+        <filter id="shadow-${hash}" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+          <feOffset dx="2" dy="2" result="offsetblur"/>
+          <feComponentTransfer>
+            <feFuncA type="linear" slope="0.3"/>
+          </feComponentTransfer>
+          <feMerge> 
+            <feMergeNode/>
+            <feMergeNode in="SourceGraphic"/> 
+          </feMerge>
+        </filter>
+      </defs>
+      <rect x="0" y="0" width="100" height="100" fill="url(#grad-${hash})"/>
+      <circle cx="${c1X}" cy="${c1Y}" r="${c1R}" fill="hsl(${c1Hue}, 70%, 80%)" opacity="0.4"/>
+      <circle cx="${c2X}" cy="${c2Y}" r="${c2R}" fill="hsl(${c2Hue}, 70%, 80%)" opacity="0.5"/>
+      <circle cx="${c3X}" cy="${c3Y}" r="${c3R}" fill="hsl(${c3Hue}, 70%, 80%)" opacity="0.3"/>
+      <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="40" font-weight="bold" fill="white" filter="url(#shadow-${hash})">
+        DT
+      </text>
+    </svg>
+  `;
+  return `data:image/svg+xml;base64,${btoa(svgString)}`;
+}
+
 function renderPosts() {
   filteredPosts.sort((a, b) => totalScore(b) - totalScore(a));
   
@@ -30,10 +80,16 @@ function renderPosts() {
     try {
       const musicData = JSON.parse(post.content);
       if (musicData && musicData.type === 'music') {
+        const imageUrl = musicData.thumbnail_url || createDynamicPlaceholder(post.post_id);
+        const imageElement = `<img src="${imageUrl}" alt="Cover Art" width="100" style="object-fit: cover; aspect-ratio: 1/1;">`;
+        
         contentHtml = `
-          <h4>${musicData.title} - ${musicData.artist}</h4>
-          <audio controls preload="none" src="${musicData.url}"></audio>
-          <p>Length: ${musicData.length}s</p>
+          <div style="display: flex; align-items: center; gap: 15px;">
+            ${imageElement}
+            <div style="flex-grow: 1;">
+              <h4>${musicData.title} - ${musicData.artist}</h4>
+            </div>
+          </div>
         `;
       } else {
         throw new Error("Not a music post");
