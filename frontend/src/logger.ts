@@ -54,6 +54,11 @@ async function syncLogs() {
       const errorMessage = error.message.toLowerCase();
       const errorCause = error.cause instanceof Error ? error.cause.message.toLowerCase() : "";
 
+      if (errorMessage.includes('502')) {
+        console.info("Ignoring 502 error from log collector.");
+        return;
+      }
+
       if (errorMessage.includes('failed to fetch') || errorMessage.includes('load failed')) {
         isNetworkError = true;
       } else if (errorCause.includes('failed to fetch')) {

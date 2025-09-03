@@ -43,6 +43,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     -   Song posts:
         -   Handle song previews. If a new preview starts, stop the previous
 
+### Fixed
+-   **Frontend:** The log collector now ignores 502 Bad Gateway errors to prevent unnecessary retries when the server is temporarily unavailable.
+
 ### Added
 -   **Posts:** Initial support for music posts defined by JSON, with content accessible via URL
 -   **Frontend:** 
