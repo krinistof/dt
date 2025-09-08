@@ -11,11 +11,11 @@ tonic-web = "0.10"
 tower-http = { version = "0.4", features = ["cors", "fs"] }
 axum = "0.6"
 anyhow = "1.0"
-sqlx = { version = "0.7", features = [ "runtime-tokio", "sqlite" ] }
+sqlx = { version = "0.8.1", features = [ "runtime-tokio", "sqlite" ] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing-subscriber = { version = "0.3.20", features = ["env-filter", "json"] }
 chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1.18.0", features = ["v4", "serde"] }
 

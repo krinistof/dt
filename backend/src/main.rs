@@ -2,10 +2,7 @@ use anyhow::Result;
 use axum::{routing::any_service, Router};
 use serde::{Deserialize, Serialize};
 use tonic::{Request, Response, Status};
-use tower_http::{
-    cors::{Any, CorsLayer},
-    services::ServeDir,
-};
+use tower_http::services::ServeDir;
 use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -225,12 +222,12 @@ impl Dt for DtService {
 async fn main() -> Result<()> {
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(
-            std::env::var("RUST_LOG").unwrap_or_else(|_| "dt_backend=debug,tower_http=debug".into()),
+            std::env::var("RUST_LOG").unwrap_or_else(|_| "dt=debug,tower_http=debug".into()),
         ))
         .with(tracing_subscriber::fmt::layer().json())
         .init();
 
-    let addr = "0.0.0.0:80".parse()?;
+    let addr = "0.0.0.0:8080".parse()?;
     let log_service = LogCollector::default();
     let db = db::new().await?;
     let dt_service = DtService::new(db);
@@ -250,14 +247,7 @@ async fn main() -> Result<()> {
         .nest_service("/grpc/log", log_grpc_web_service)
         .nest_service("/grpc/dt", dt_grpc_web_service)
         .nest_service("/media", media_files_service)
-        .fallback(static_files_service)
-        .layer(
-            //TODO DEV ONLY
-            CorsLayer::new()
-                .allow_origin(Any)
-                .allow_methods(Any)
-                .allow_headers(Any),
-        );
+        .fallback(static_files_service);
 
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
