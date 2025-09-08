@@ -5,10 +5,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-### Planned
-
 ## [8.3.0] - Unreleased
 
 ### Planned
@@ -28,16 +24,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     -   Integrate with Grafana
 
 
-## [8.2.0] - Work in progress
+## [8.2.0] - Unreleased
 
 ### Planned
--   **Posts:** Support multi-media posts defined by JSON, content accessible via URL
--   **Frontend:** Apply UX experiences from previuos versions:
-    -   Simple to use design with search bar on the top
-    -   Broad support of deployed CSS for most browsers, mobiles 
-    -   Low code size for deployed CSS, JS
-    -   Disable content redrawing when user interacts with cooldown
-    -   Prevent resizing, text selection when interacting from mobile
+-   **Frontend:**
+    -   **Voting UX:**
+        -   **Hold-to-Vote:** Hold the left side of a post to downvote or the right side to upvote.
+        -   **Dynamic Scoring:** Score accelerates non-linearly(tanh), requiring more effort to cast extreme votes. max or min score in 3 s.
+        -   **Visual Feedback:** Post score is visualized as a progress bar between thumbnails and titles, with haptic feedback.
+        -   **Interaction Safety:** Content redraws are paused during voting to prevent flickering and accidental taps.
+        -   **Mobile Layout:** On mobile devices, post thumbnails are enlarged to 80% of the screen width, with the artist and title displayed below.
+    -   **Detail View:** Double tapping on posts opens a detail view, offering song previews (e.g., starting at 30%).
+    -   **Automatic player:** A read only client bot for playing the most liked songs after each other with song timeouts.
+    -   **Search Bar:** Add an "X" to the search bar to allow for easily clearing text.
+    -   **General:**
+        -   Prevented resizing and text selection during mobile interactions.
+    -   Search bar on top
+    -   Removed text-based score feedback from the user
+    -   Ensured broad CSS support for most browsers and mobile devices
+-   **Backend:**
+    -   Updated post handling to dynamically generate a content hash
+    -   Changed default logging level to info
+    -   Behind cargo feature implemented music scanner which keeps posts table up to date with songs from media
+-   **Build System:**
+    -   Improved the build.rs to provide detailed `npm` error logs
+-   **Posts:** Initial support for music posts defined by JSON, with content accessible via URL
+-   **Thumbnails:**
+    -   **Backend:** The media scanner now identifies embedded cover art and exposes a dedicated `/thumbnail/:filename` endpoint to serve it on-demand
+    -   **Frontend:** Music posts now display the embedded thumbnail. If no thumbnail is present, a unique, dynamically generated SVG placeholder is shown instead
+
+### Fixed
+-   **Frontend:** The log collector now ignores 502 Bad Gateway errors to prevent unnecessary retries when the server is temporarily unavailable
 
 ## [8.1.0] - 2025-08-28
 
