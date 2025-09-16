@@ -18,13 +18,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned
 -   **Backend:**
     -   Profile SQLite service and add indices based on access patterns
-    -   Add tests
 -   **Monitoring:**
     -   Set up circular logging
     -   Integrate with Grafana
 
 
 ## [8.2.0] - Unreleased
+
+### Added
+-   **Frontend:**
+    -   **Automatic player:** A read only client bot for playing the most liked songs after each other with song timeouts (`0fe803c`).
+    -   **Search Bar:** Add an "X" to the search bar to allow for easily clearing text (`3d47337`).
+    -   **State Sync:** Implement full state sync and improve audio loading (`0824a79`).
+-   **Backend:**
+    -   **Stability:** Add integration tests that run the backend and frontend tests together
+    -   **Media Scanner:** Behind a cargo feature, implemented a music scanner which keeps the posts table up to date with songs from media (`ee2079e`).
+-   **Thumbnails:**
+    -   **Backend:** The media scanner now identifies embedded cover art and exposes a dedicated `/thumbnail/:filename` endpoint to serve it on-demand (`938c692`).
+    -   **Frontend:** Music posts now display the embedded thumbnail. If no thumbnail is present, a unique, dynamically generated SVG placeholder is shown instead (`938c692`).
+
+### Fixed
+-   **Frontend:** The log collector now ignores 502 Bad Gateway errors to prevent unnecessary retries when the server is temporarily unavailable (`13d1dfc`).
 
 ### Planned
 -   **Frontend:**
@@ -35,8 +49,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
         -   **Interaction Safety:** Content redraws are paused during voting to prevent flickering and accidental taps.
         -   **Mobile Layout:** On mobile devices, post thumbnails are enlarged to 80% of the screen width, with the artist and title displayed below.
     -   **Detail View:** Double tapping on posts opens a detail view, offering song previews (e.g., starting at 30%).
-    -   **Automatic player:** A read only client bot for playing the most liked songs after each other with song timeouts.
-    -   **Search Bar:** Add an "X" to the search bar to allow for easily clearing text.
     -   **General:**
         -   Prevented resizing and text selection during mobile interactions.
     -   Search bar on top
@@ -45,16 +57,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   **Backend:**
     -   Updated post handling to dynamically generate a content hash
     -   Changed default logging level to info
-    -   Behind cargo feature implemented music scanner which keeps posts table up to date with songs from media
 -   **Build System:**
     -   Improved the build.rs to provide detailed `npm` error logs
 -   **Posts:** Initial support for music posts defined by JSON, with content accessible via URL
--   **Thumbnails:**
-    -   **Backend:** The media scanner now identifies embedded cover art and exposes a dedicated `/thumbnail/:filename` endpoint to serve it on-demand
-    -   **Frontend:** Music posts now display the embedded thumbnail. If no thumbnail is present, a unique, dynamically generated SVG placeholder is shown instead
-
-### Fixed
--   **Frontend:** The log collector now ignores 502 Bad Gateway errors to prevent unnecessary retries when the server is temporarily unavailable
 
 ## [8.1.0] - 2025-08-28
 

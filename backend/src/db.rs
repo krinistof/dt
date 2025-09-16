@@ -4,10 +4,12 @@ use sqlx::SqlitePool;
 use crate::dt::Event;
 
 pub type Db = SqlitePool;
+const DEFAULT_SQLITE_URL: &str = "sqlite://dt.db?mode=rwc";
 
 pub async fn new() -> Result<Db> {
-    //TODO DEV ONLY
-    let pool = SqlitePool::connect("sqlite:dt.db?mode=rwc").await?;
+    let db_url =
+        std::env::var("DATABASE_URL").unwrap_or_else(|_| DEFAULT_SQLITE_URL.into());
+    let pool = SqlitePool::connect(&db_url).await?;
     sqlx::migrate!().run(&pool).await?;
     Ok(pool)
 }
