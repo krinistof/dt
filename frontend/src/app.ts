@@ -4,6 +4,7 @@ import { syncInitialState, syncEvents } from './sync';
 import { addEvent, getAllPosts, putPost, Post } from './idb';
 // @ts-expect-error js-sha256 is not typed
 import { sha256 } from 'js-sha256';
+import { MIN_USER_VOTE, MAX_USER_VOTE } from './constants'
 
 const postsContainer = document.getElementById('posts-container') as HTMLDivElement;
 const postForm = document.getElementById('post-form') as HTMLFormElement;
@@ -33,7 +34,7 @@ function renderPosts() {
           Score: ${post.totalScore} 
           (Base: ${post.base_score}, User: ${post.user_score})
         </p>
-        <input type="range" min="-127" max="128" value="${post.user_score}" data-hash="${post.content_hash}">
+        <input type="range" min="${MIN_USER_VOTE}" max="${MAX_USER_VOTE}" value="${post.user_score}" data-hash="${post.content_hash}">
       </div>
       <hr>
     `;
