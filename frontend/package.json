@@ -34,7 +34,7 @@
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.41.0",
     "vite": "^6.3.5",
-    "vitest": "^2.0.5"
+    "vitest": "^3.2.4"
   },
   "description": "Local first client for dt platform",
   "main": "index.js",
