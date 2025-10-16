@@ -1,5 +1,6 @@
 import { DtServiceClient } from './grpc';
 import { getAllEvents, clearEvents, putPost, getPost, Post } from './idb';
+import { ConnectError, Code } from '@connectrpc/connect';
 
 const RETRY_TIMEOUT_MS: number = 3000;
 let retryTimeoutId: number | null = null;
@@ -122,7 +123,30 @@ export async function syncEvents() {
     }
 }
 
-function handleSyncError(error: unknown, retryFunction: () => void) {
+export function handleSyncError(error: unknown, retryFunction: () => void) {
+    if (error instanceof ConnectError && error.code === Code.Unavailable) {
+      console.info("Failed to sync: Server unavailable.");
+    } else {
+      let isNetworkError = false;
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+        const errorCause = error.cause instanceof Error ? error.cause.message.toLowerCase() : "";
+
+        if (errorMessage.includes('failed to fetch') || errorMessage.includes('load failed') || errorMessage.includes('http 404')) {
+          isNetworkError = true;
+        } else if (errorCause.includes('failed to fetch')) {
+          isNetworkError = true;
+        }
+      }
+
+      if (isNetworkError) {
+        console.info("Failed to sync to the server due to a network error.");
+        return;
+      } else {
+        console.error("Failed to sync to the server:", error);
+      }
+    }
+
     let isFetchError = false;
     if (error instanceof Error) {
         if (error.message.toLowerCase().includes('failed to fetch')) {
@@ -137,6 +161,7 @@ function handleSyncError(error: unknown, retryFunction: () => void) {
 
     if (isFetchError) {
         console.info('Failed to sync to the server due to a network error.');
+        return;
     } else {
         console.error('Failed to sync to the server:', error);
     }

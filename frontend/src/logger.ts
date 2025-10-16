@@ -1,7 +1,7 @@
 
 import { LogServiceClient } from './grpc';
 import { addLog, getAllLogs, clearLogs } from './idb';
-import { ConnectError, Code } from '@connectrpc/connect';
+import { handleSyncError } from './sync';
 
 const RETRY_TIMEOUT_MS: number = 3000;
 let retryTimeoutId: number | null = null;
@@ -50,37 +50,7 @@ async function syncLogs() {
       retryTimeoutId = null;
     }
   } catch (error) {
-    if (error instanceof ConnectError && error.code === Code.Unavailable) {
-      console.info("Failed to sync logs to the collector: Server unavailable (503).");
-    } else {
-      let isNetworkError = false;
-      if (error instanceof Error) {
-        const errorMessage = error.message.toLowerCase();
-        const errorCause = error.cause instanceof Error ? error.cause.message.toLowerCase() : "";
-
-        if (errorMessage.includes('failed to fetch') || errorMessage.includes('load failed')) {
-          isNetworkError = true;
-        } else if (errorCause.includes('failed to fetch')) {
-          isNetworkError = true;
-        }
-      }
-
-      if (isNetworkError) {
-        console.info("Failed to sync logs to the collector due to a network error.");
-      } else {
-        console.error("Failed to sync logs to the collector:", error);
-      }
-    }
-    
-    if (retryTimeoutId) {
-      return;
-    }
-
-    console.info(`Retrying in ${RETRY_TIMEOUT_MS} ms...`);
-    retryTimeoutId = setTimeout(() => {
-      retryTimeoutId = null;
-      syncLogs();
-    }, RETRY_TIMEOUT_MS);
+    handleSyncError(error, syncLogs);
   }
 }
 
