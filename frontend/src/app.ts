@@ -24,7 +24,7 @@ function renderPosts() {
   posts.sort((a, b) => b.totalScore - a.totalScore);
   
   postsContainer.innerHTML = '';
-  posts.forEach(post => {
+  for(post of posts) {
     const postElement = document.createElement('div');
     postElement.dataset.hash = post.content_hash;
     postElement.innerHTML = `
@@ -39,7 +39,7 @@ function renderPosts() {
       <hr>
     `;
     postsContainer.appendChild(postElement);
-  });
+  }
 }
 
 // --- Event Handlers ---
@@ -79,7 +79,7 @@ postsContainer.addEventListener('input', (e) => {
   if (target.type !== 'range') return;
 
   const content_hash = target.dataset.hash as string;
-  const user_score = parseInt(target.value, 10);
+  const user_score = Number.parseInt(target.value, 10);
 
   const post = posts.find(p => p.content_hash === content_hash);
   if (!post) return;
@@ -98,7 +98,7 @@ postsContainer.addEventListener('change', async (e) => {
   if (target.type !== 'range') return;
 
   const content_hash = target.dataset.hash as string;
-  const user_score = parseInt(target.value, 10);
+  const user_score = Number.parseInt(target.value, 10);
 
   const postToUpdate = posts.find(p => p.content_hash === content_hash);
 

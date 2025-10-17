@@ -12,6 +12,7 @@ pkgs.mkShell {
 
     # Javascript
     nodejs_24
+    biome
 
     # Protobuf
     buf

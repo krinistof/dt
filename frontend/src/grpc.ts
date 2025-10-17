@@ -1,4 +1,4 @@
-import { createClient, Transport } from '@connectrpc/connect';
+import { createClient, type Transport } from '@connectrpc/connect';
 import { createGrpcWebTransport } from '@connectrpc/connect-web';
 
 import { LogCollectorService } from './gen/log/v1/log_pb';

@@ -35,7 +35,7 @@ async function submitEvents() {
       });
       if (response.success) {
         await clearEvents([eventWithKey.key]);
-        console.log(`Successfully synced and cleared event.`);
+        console.log("Successfully synced and cleared event.");
       } else {
         console.error('Server indicated failure for a synced event.');
       }
@@ -142,9 +142,8 @@ export function handleSyncError(error: unknown, retryFunction: () => void) {
       if (isNetworkError) {
         console.info("Failed to sync to the server due to a network error.");
         return;
-      } else {
-        console.error("Failed to sync to the server:", error);
       }
+      console.error("Failed to sync to the server:", error);
     }
 
     let isFetchError = false;
@@ -162,9 +161,8 @@ export function handleSyncError(error: unknown, retryFunction: () => void) {
     if (isFetchError) {
         console.info('Failed to sync to the server due to a network error.');
         return;
-    } else {
-        console.error('Failed to sync to the server:', error);
     }
+    console.error('Failed to sync to the server:', error);
 
     if (retryTimeoutId) {
         return;
