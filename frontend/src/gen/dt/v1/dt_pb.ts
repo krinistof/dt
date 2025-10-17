@@ -2,235 +2,253 @@
 // @generated from file dt/v1/dt.proto (package dt.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
-import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type {
+	GenFile,
+	GenMessage,
+	GenService,
+} from "@bufbuild/protobuf/codegenv2";
+import {
+	fileDesc,
+	messageDesc,
+	serviceDesc,
+} from "@bufbuild/protobuf/codegenv2";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file dt/v1/dt.proto.
  */
-export const file_dt_v1_dt: GenFile = /*@__PURE__*/
-  fileDesc("Cg5kdC92MS9kdC5wcm90bxIFZHQudjEiUAoFRXZlbnQSEgoKY2xpZW50X2tleRgBIAEoCRIOCgZhY3Rpb24YAiABKAkSDwoHcGF5bG9hZBgDIAEoCRISCgpjcmVhdGVkX2F0GAQgASgDImYKBFBvc3QSDwoHcG9zdF9pZBgBIAEoCRIPCgdjb250ZW50GAIgASgJEhQKDGxhc3RfdXBkYXRlZBgDIAEoAxISCgpiYXNlX3Njb3JlGAQgASgREhIKCnVzZXJfc2NvcmUYBSABKBEiRQoSU3VibWl0RXZlbnRSZXF1ZXN0EhIKCnVzZXJfdG9rZW4YASABKAkSGwoFZXZlbnQYAiABKAsyDC5kdC52MS5FdmVudCImChNTdWJtaXRFdmVudFJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgiLAoWR2V0SW5pdGlhbFN0YXRlUmVxdWVzdBISCgp1c2VyX3Rva2VuGAEgASgJIk8KF0dldEluaXRpYWxTdGF0ZVJlc3BvbnNlEhoKBXBvc3RzGAEgAygLMgsuZHQudjEuUG9zdBIYChBzZXJ2ZXJfdGltZXN0YW1wGAIgASgDIkAKEVN5bmNFdmVudHNSZXF1ZXN0EhIKCnVzZXJfdG9rZW4YASABKAkSFwoPc2luY2VfdGltZXN0YW1wGAIgASgDIkwKElN5bmNFdmVudHNSZXNwb25zZRIcCgZldmVudHMYASADKAsyDC5kdC52MS5FdmVudBIYChBzZXJ2ZXJfdGltZXN0YW1wGAIgASgDMt8BCgJEdBJECgtTdWJtaXRFdmVudBIZLmR0LnYxLlN1Ym1pdEV2ZW50UmVxdWVzdBoaLmR0LnYxLlN1Ym1pdEV2ZW50UmVzcG9uc2USUAoPR2V0SW5pdGlhbFN0YXRlEh0uZHQudjEuR2V0SW5pdGlhbFN0YXRlUmVxdWVzdBoeLmR0LnYxLkdldEluaXRpYWxTdGF0ZVJlc3BvbnNlEkEKClN5bmNFdmVudHMSGC5kdC52MS5TeW5jRXZlbnRzUmVxdWVzdBoZLmR0LnYxLlN5bmNFdmVudHNSZXNwb25zZWIGcHJvdG8z");
+export const file_dt_v1_dt: GenFile =
+	/*@__PURE__*/
+	fileDesc(
+		"Cg5kdC92MS9kdC5wcm90bxIFZHQudjEiUAoFRXZlbnQSEgoKY2xpZW50X2tleRgBIAEoCRIOCgZhY3Rpb24YAiABKAkSDwoHcGF5bG9hZBgDIAEoCRISCgpjcmVhdGVkX2F0GAQgASgDImYKBFBvc3QSDwoHcG9zdF9pZBgBIAEoCRIPCgdjb250ZW50GAIgASgJEhQKDGxhc3RfdXBkYXRlZBgDIAEoAxISCgpiYXNlX3Njb3JlGAQgASgREhIKCnVzZXJfc2NvcmUYBSABKBEiRQoSU3VibWl0RXZlbnRSZXF1ZXN0EhIKCnVzZXJfdG9rZW4YASABKAkSGwoFZXZlbnQYAiABKAsyDC5kdC52MS5FdmVudCImChNTdWJtaXRFdmVudFJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgiLAoWR2V0SW5pdGlhbFN0YXRlUmVxdWVzdBISCgp1c2VyX3Rva2VuGAEgASgJIk8KF0dldEluaXRpYWxTdGF0ZVJlc3BvbnNlEhoKBXBvc3RzGAEgAygLMgsuZHQudjEuUG9zdBIYChBzZXJ2ZXJfdGltZXN0YW1wGAIgASgDIkAKEVN5bmNFdmVudHNSZXF1ZXN0EhIKCnVzZXJfdG9rZW4YASABKAkSFwoPc2luY2VfdGltZXN0YW1wGAIgASgDIkwKElN5bmNFdmVudHNSZXNwb25zZRIcCgZldmVudHMYASADKAsyDC5kdC52MS5FdmVudBIYChBzZXJ2ZXJfdGltZXN0YW1wGAIgASgDMt8BCgJEdBJECgtTdWJtaXRFdmVudBIZLmR0LnYxLlN1Ym1pdEV2ZW50UmVxdWVzdBoaLmR0LnYxLlN1Ym1pdEV2ZW50UmVzcG9uc2USUAoPR2V0SW5pdGlhbFN0YXRlEh0uZHQudjEuR2V0SW5pdGlhbFN0YXRlUmVxdWVzdBoeLmR0LnYxLkdldEluaXRpYWxTdGF0ZVJlc3BvbnNlEkEKClN5bmNFdmVudHMSGC5kdC52MS5TeW5jRXZlbnRzUmVxdWVzdBoZLmR0LnYxLlN5bmNFdmVudHNSZXNwb25zZWIGcHJvdG8z",
+	);
 
 /**
  * @generated from message dt.v1.Event
  */
 export type Event = Message<"dt.v1.Event"> & {
-  /**
-   * @generated from field: string client_key = 1;
-   */
-  clientKey: string;
+	/**
+	 * @generated from field: string client_key = 1;
+	 */
+	clientKey: string;
 
-  /**
-   * @generated from field: string action = 2;
-   */
-  action: string;
+	/**
+	 * @generated from field: string action = 2;
+	 */
+	action: string;
 
-  /**
-   * @generated from field: string payload = 3;
-   */
-  payload: string;
+	/**
+	 * @generated from field: string payload = 3;
+	 */
+	payload: string;
 
-  /**
-   * @generated from field: int64 created_at = 4;
-   */
-  createdAt: bigint;
+	/**
+	 * @generated from field: int64 created_at = 4;
+	 */
+	createdAt: bigint;
 };
 
 /**
  * Describes the message dt.v1.Event.
  * Use `create(EventSchema)` to create a new message.
  */
-export const EventSchema: GenMessage<Event> = /*@__PURE__*/
-  messageDesc(file_dt_v1_dt, 0);
+export const EventSchema: GenMessage<Event> =
+	/*@__PURE__*/
+	messageDesc(file_dt_v1_dt, 0);
 
 /**
  * @generated from message dt.v1.Post
  */
 export type Post = Message<"dt.v1.Post"> & {
-  /**
-   * @generated from field: string post_id = 1;
-   */
-  postId: string;
+	/**
+	 * @generated from field: string post_id = 1;
+	 */
+	postId: string;
 
-  /**
-   * @generated from field: string content = 2;
-   */
-  content: string;
+	/**
+	 * @generated from field: string content = 2;
+	 */
+	content: string;
 
-  /**
-   * @generated from field: int64 last_updated = 3;
-   */
-  lastUpdated: bigint;
+	/**
+	 * @generated from field: int64 last_updated = 3;
+	 */
+	lastUpdated: bigint;
 
-  /**
-   * @generated from field: sint32 base_score = 4;
-   */
-  baseScore: number;
+	/**
+	 * @generated from field: sint32 base_score = 4;
+	 */
+	baseScore: number;
 
-  /**
-   * @generated from field: sint32 user_score = 5;
-   */
-  userScore: number;
+	/**
+	 * @generated from field: sint32 user_score = 5;
+	 */
+	userScore: number;
 };
 
 /**
  * Describes the message dt.v1.Post.
  * Use `create(PostSchema)` to create a new message.
  */
-export const PostSchema: GenMessage<Post> = /*@__PURE__*/
-  messageDesc(file_dt_v1_dt, 1);
+export const PostSchema: GenMessage<Post> =
+	/*@__PURE__*/
+	messageDesc(file_dt_v1_dt, 1);
 
 /**
  * @generated from message dt.v1.SubmitEventRequest
  */
 export type SubmitEventRequest = Message<"dt.v1.SubmitEventRequest"> & {
-  /**
-   * @generated from field: string user_token = 1;
-   */
-  userToken: string;
+	/**
+	 * @generated from field: string user_token = 1;
+	 */
+	userToken: string;
 
-  /**
-   * @generated from field: dt.v1.Event event = 2;
-   */
-  event?: Event;
+	/**
+	 * @generated from field: dt.v1.Event event = 2;
+	 */
+	event?: Event;
 };
 
 /**
  * Describes the message dt.v1.SubmitEventRequest.
  * Use `create(SubmitEventRequestSchema)` to create a new message.
  */
-export const SubmitEventRequestSchema: GenMessage<SubmitEventRequest> = /*@__PURE__*/
-  messageDesc(file_dt_v1_dt, 2);
+export const SubmitEventRequestSchema: GenMessage<SubmitEventRequest> =
+	/*@__PURE__*/
+	messageDesc(file_dt_v1_dt, 2);
 
 /**
  * @generated from message dt.v1.SubmitEventResponse
  */
 export type SubmitEventResponse = Message<"dt.v1.SubmitEventResponse"> & {
-  /**
-   * @generated from field: bool success = 1;
-   */
-  success: boolean;
+	/**
+	 * @generated from field: bool success = 1;
+	 */
+	success: boolean;
 };
 
 /**
  * Describes the message dt.v1.SubmitEventResponse.
  * Use `create(SubmitEventResponseSchema)` to create a new message.
  */
-export const SubmitEventResponseSchema: GenMessage<SubmitEventResponse> = /*@__PURE__*/
-  messageDesc(file_dt_v1_dt, 3);
+export const SubmitEventResponseSchema: GenMessage<SubmitEventResponse> =
+	/*@__PURE__*/
+	messageDesc(file_dt_v1_dt, 3);
 
 /**
  * @generated from message dt.v1.GetInitialStateRequest
  */
 export type GetInitialStateRequest = Message<"dt.v1.GetInitialStateRequest"> & {
-  /**
-   * @generated from field: string user_token = 1;
-   */
-  userToken: string;
+	/**
+	 * @generated from field: string user_token = 1;
+	 */
+	userToken: string;
 };
 
 /**
  * Describes the message dt.v1.GetInitialStateRequest.
  * Use `create(GetInitialStateRequestSchema)` to create a new message.
  */
-export const GetInitialStateRequestSchema: GenMessage<GetInitialStateRequest> = /*@__PURE__*/
-  messageDesc(file_dt_v1_dt, 4);
+export const GetInitialStateRequestSchema: GenMessage<GetInitialStateRequest> =
+	/*@__PURE__*/
+	messageDesc(file_dt_v1_dt, 4);
 
 /**
  * @generated from message dt.v1.GetInitialStateResponse
  */
-export type GetInitialStateResponse = Message<"dt.v1.GetInitialStateResponse"> & {
-  /**
-   * @generated from field: repeated dt.v1.Post posts = 1;
-   */
-  posts: Post[];
+export type GetInitialStateResponse =
+	Message<"dt.v1.GetInitialStateResponse"> & {
+		/**
+		 * @generated from field: repeated dt.v1.Post posts = 1;
+		 */
+		posts: Post[];
 
-  /**
-   * @generated from field: int64 server_timestamp = 2;
-   */
-  serverTimestamp: bigint;
-};
+		/**
+		 * @generated from field: int64 server_timestamp = 2;
+		 */
+		serverTimestamp: bigint;
+	};
 
 /**
  * Describes the message dt.v1.GetInitialStateResponse.
  * Use `create(GetInitialStateResponseSchema)` to create a new message.
  */
-export const GetInitialStateResponseSchema: GenMessage<GetInitialStateResponse> = /*@__PURE__*/
-  messageDesc(file_dt_v1_dt, 5);
+export const GetInitialStateResponseSchema: GenMessage<GetInitialStateResponse> =
+	/*@__PURE__*/
+	messageDesc(file_dt_v1_dt, 5);
 
 /**
  * @generated from message dt.v1.SyncEventsRequest
  */
 export type SyncEventsRequest = Message<"dt.v1.SyncEventsRequest"> & {
-  /**
-   * @generated from field: string user_token = 1;
-   */
-  userToken: string;
+	/**
+	 * @generated from field: string user_token = 1;
+	 */
+	userToken: string;
 
-  /**
-   * @generated from field: int64 since_timestamp = 2;
-   */
-  sinceTimestamp: bigint;
+	/**
+	 * @generated from field: int64 since_timestamp = 2;
+	 */
+	sinceTimestamp: bigint;
 };
 
 /**
  * Describes the message dt.v1.SyncEventsRequest.
  * Use `create(SyncEventsRequestSchema)` to create a new message.
  */
-export const SyncEventsRequestSchema: GenMessage<SyncEventsRequest> = /*@__PURE__*/
-  messageDesc(file_dt_v1_dt, 6);
+export const SyncEventsRequestSchema: GenMessage<SyncEventsRequest> =
+	/*@__PURE__*/
+	messageDesc(file_dt_v1_dt, 6);
 
 /**
  * @generated from message dt.v1.SyncEventsResponse
  */
 export type SyncEventsResponse = Message<"dt.v1.SyncEventsResponse"> & {
-  /**
-   * @generated from field: repeated dt.v1.Event events = 1;
-   */
-  events: Event[];
+	/**
+	 * @generated from field: repeated dt.v1.Event events = 1;
+	 */
+	events: Event[];
 
-  /**
-   * @generated from field: int64 server_timestamp = 2;
-   */
-  serverTimestamp: bigint;
+	/**
+	 * @generated from field: int64 server_timestamp = 2;
+	 */
+	serverTimestamp: bigint;
 };
 
 /**
  * Describes the message dt.v1.SyncEventsResponse.
  * Use `create(SyncEventsResponseSchema)` to create a new message.
  */
-export const SyncEventsResponseSchema: GenMessage<SyncEventsResponse> = /*@__PURE__*/
-  messageDesc(file_dt_v1_dt, 7);
+export const SyncEventsResponseSchema: GenMessage<SyncEventsResponse> =
+	/*@__PURE__*/
+	messageDesc(file_dt_v1_dt, 7);
 
 /**
  * @generated from service dt.v1.Dt
  */
 export const Dt: GenService<{
-  /**
-   * @generated from rpc dt.v1.Dt.SubmitEvent
-   */
-  submitEvent: {
-    methodKind: "unary";
-    input: typeof SubmitEventRequestSchema;
-    output: typeof SubmitEventResponseSchema;
-  },
-  /**
-   * @generated from rpc dt.v1.Dt.GetInitialState
-   */
-  getInitialState: {
-    methodKind: "unary";
-    input: typeof GetInitialStateRequestSchema;
-    output: typeof GetInitialStateResponseSchema;
-  },
-  /**
-   * @generated from rpc dt.v1.Dt.SyncEvents
-   */
-  syncEvents: {
-    methodKind: "unary";
-    input: typeof SyncEventsRequestSchema;
-    output: typeof SyncEventsResponseSchema;
-  },
-}> = /*@__PURE__*/
-  serviceDesc(file_dt_v1_dt, 0);
-
+	/**
+	 * @generated from rpc dt.v1.Dt.SubmitEvent
+	 */
+	submitEvent: {
+		methodKind: "unary";
+		input: typeof SubmitEventRequestSchema;
+		output: typeof SubmitEventResponseSchema;
+	};
+	/**
+	 * @generated from rpc dt.v1.Dt.GetInitialState
+	 */
+	getInitialState: {
+		methodKind: "unary";
+		input: typeof GetInitialStateRequestSchema;
+		output: typeof GetInitialStateResponseSchema;
+	};
+	/**
+	 * @generated from rpc dt.v1.Dt.SyncEvents
+	 */
+	syncEvents: {
+		methodKind: "unary";
+		input: typeof SyncEventsRequestSchema;
+		output: typeof SyncEventsResponseSchema;
+	};
+}> = /*@__PURE__*/ serviceDesc(file_dt_v1_dt, 0);

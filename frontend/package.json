@@ -1,51 +1,46 @@
 {
-  "name": "dt-frontend",
-  "version": "8.1.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "npm run lint && vite build",
-    "build:debug": "vite build --minify=false",
-    "preview": "vite preview",
-    "gen-proto": "buf generate",
-    "lint": "biome lint .",
-    "format": "biome format --write .",
-    "test": "vitest run"
-  },
-  "dependencies": {
-    "@bufbuild/protobuf": "^2.5.2",
-    "@connectrpc/connect": "^2.0.2",
-    "@connectrpc/connect-web": "^2.0.2",
-    "@types/uuid": "^10.0.0",
-    "js-sha256": "^0.11.1",
-    "uuid": "^11.1.0"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^2.2.6",
-    "@bufbuild/buf": "^1.54.0",
-    "@bufbuild/protoc-gen-es": "^2.5.2",
-    "@eslint/js": "^9.34.0",
-    "@types/node": "^22.14.0",
-    "@typescript-eslint/eslint-plugin": "^8.41.0",
-    "@typescript-eslint/parser": "^8.41.0",
-    "browserslist": "^4.25.4",
-    "eslint": "^9.34.0",
-    "eslint-plugin-compat": "^6.0.2",
-    "fake-indexeddb": "^6.2.2",
-    "globals": "^16.3.0",
-    "typescript": "~5.7.2",
-    "typescript-eslint": "^8.41.0",
-    "vite": "^6.3.5",
-    "vitest": "^3.2.4"
-  },
-  "description": "Local first client for dt platform",
-  "main": "index.js",
-  "author": "Ifa <kristof@mntr.dev>",
-  "license": "MIT",
-  "browserslist": [
-    "> 0.5%",
-    "last 2 versions",
-    "Firefox ESR",
-    "not dead"
-  ]
+	"name": "dt-frontend",
+	"version": "8.1.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "npm run lint && vite build",
+		"build:debug": "vite build --minify=false",
+		"preview": "vite preview",
+		"gen-proto": "buf generate",
+		"lint": "biome lint .",
+		"format": "biome format --write .",
+		"test": "vitest run"
+	},
+	"dependencies": {
+		"@bufbuild/protobuf": "^2.5.2",
+		"@connectrpc/connect": "^2.0.2",
+		"@connectrpc/connect-web": "^2.0.2",
+		"@types/uuid": "^10.0.0",
+		"js-sha256": "^0.11.1",
+		"uuid": "^11.1.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.2.6",
+		"@bufbuild/buf": "^1.54.0",
+		"@bufbuild/protoc-gen-es": "^2.5.2",
+		"@eslint/js": "^9.34.0",
+		"@types/node": "^22.14.0",
+		"@typescript-eslint/eslint-plugin": "^8.41.0",
+		"@typescript-eslint/parser": "^8.41.0",
+		"browserslist": "^4.25.4",
+		"eslint": "^9.34.0",
+		"eslint-plugin-compat": "^6.0.2",
+		"fake-indexeddb": "^6.2.2",
+		"globals": "^16.3.0",
+		"typescript": "~5.7.2",
+		"typescript-eslint": "^8.41.0",
+		"vite": "^6.3.5",
+		"vitest": "^3.2.4"
+	},
+	"description": "Local first client for dt platform",
+	"main": "index.js",
+	"author": "Ifa <kristof@mntr.dev>",
+	"license": "MIT",
+	"browserslist": ["> 0.5%", "last 2 versions", "Firefox ESR", "not dead"]
 }

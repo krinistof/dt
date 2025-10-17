@@ -1,7 +1,6 @@
-
-import { LogServiceClient } from './grpc';
-import { addLog, getAllLogs, clearLogs } from './idb';
-import { handleSyncError } from './sync';
+import { LogServiceClient } from "./grpc";
+import { addLog, getAllLogs, clearLogs } from "./idb";
+import { handleSyncError } from "./sync";
 
 const RETRY_TIMEOUT_MS: number = 3000;
 let retryTimeoutId: number | null = null;
@@ -12,46 +11,50 @@ let retryTimeoutId: number | null = null;
  * @param message The message to log.
  */
 async function logToServer(level: string, message: string) {
-  const log = { level, message, timestamp: new Date().toISOString() };
-  await addLog(log);
-  syncLogs();
+	const log = { level, message, timestamp: new Date().toISOString() };
+	await addLog(log);
+	syncLogs();
 }
 
 async function syncLogs() {
-  if (!navigator.onLine) {
-    return;
-  }
+	if (!navigator.onLine) {
+		return;
+	}
 
-  const logsWithKeys = await getAllLogs();
-  if (logsWithKeys.length === 0) {
-    return;
-  }
+	const logsWithKeys = await getAllLogs();
+	if (logsWithKeys.length === 0) {
+		return;
+	}
 
-  console.log(`Attempting to sync ${logsWithKeys.length} logs.`);
-  const syncedLogKeys: IDBValidKey[] = [];
+	console.log(`Attempting to sync ${logsWithKeys.length} logs.`);
+	const syncedLogKeys: IDBValidKey[] = [];
 
-  try {
-    for (const { key, log } of logsWithKeys) {
-      const response = await LogServiceClient.log({ message: `[${log.level}] ${log.message}` });
-      if (response.success) {
-        syncedLogKeys.push(key);
-      } else {
-        console.error("Log collector reported a failure for synced logs.");
-      }
-    }
+	try {
+		for (const { key, log } of logsWithKeys) {
+			const response = await LogServiceClient.log({
+				message: `[${log.level}] ${log.message}`,
+			});
+			if (response.success) {
+				syncedLogKeys.push(key);
+			} else {
+				console.error("Log collector reported a failure for synced logs.");
+			}
+		}
 
-    if (syncedLogKeys.length > 0) {
-      await clearLogs(syncedLogKeys);
-      console.log(`Successfully synced and cleared ${syncedLogKeys.length} logs.`);
-    }
+		if (syncedLogKeys.length > 0) {
+			await clearLogs(syncedLogKeys);
+			console.log(
+				`Successfully synced and cleared ${syncedLogKeys.length} logs.`,
+			);
+		}
 
-    if (retryTimeoutId) {
-      clearTimeout(retryTimeoutId);
-      retryTimeoutId = null;
-    }
-  } catch (error) {
-    handleSyncError(error, syncLogs);
-  }
+		if (retryTimeoutId) {
+			clearTimeout(retryTimeoutId);
+			retryTimeoutId = null;
+		}
+	} catch (error) {
+		handleSyncError(error, syncLogs);
+	}
 }
 
 /**
@@ -60,50 +63,53 @@ async function syncLogs() {
  * @returns A string representation of the error.
  */
 function formatError(error: unknown): string {
-  if (error instanceof Error && error.stack) {
-    return error.stack;
-  }
-  return String(error);
+	if (error instanceof Error && error.stack) {
+		return error.stack;
+	}
+	return String(error);
 }
 
 // --- Global Error Handlers ---
 
 // Catch all uncaught synchronous errors and script errors
-window.addEventListener('error', (event: ErrorEvent) => {
-  console.log("Global error handler caught:", event.error);
-  logToServer('ERROR', formatError(event.error));
+window.addEventListener("error", (event: ErrorEvent) => {
+	console.log("Global error handler caught:", event.error);
+	logToServer("ERROR", formatError(event.error));
 });
 
 // Catch all unhandled promise rejections
-window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
-  console.log("Global unhandled rejection handler caught:", event.reason);
-  logToServer('ERROR', formatError(event.reason));
-});
+window.addEventListener(
+	"unhandledrejection",
+	(event: PromiseRejectionEvent) => {
+		console.log("Global unhandled rejection handler caught:", event.reason);
+		logToServer("ERROR", formatError(event.reason));
+	},
+);
 
 // --- Global Log/Warn Overrides ---
 
 // Override console.warn
 const originalWarn = console.warn;
 console.warn = (...args: unknown[]) => {
-  originalWarn.apply(console, args);
-  logToServer('WARN', args.map(arg => String(arg)).join(' '));
+	originalWarn.apply(console, args);
+	logToServer("WARN", args.map((arg) => String(arg)).join(" "));
 };
 
 // Override console.error (optional, as uncaught errors are already handled)
 // This can be useful for logging errors that are caught but still logged with console.error
 const originalError = console.error;
 console.error = (...args: unknown[]) => {
-  originalError.apply(console, args);
-  // Avoid double-logging errors caught by the global error handler
-  if (args[0] && !(args[0] instanceof Error)) {
-     logToServer('ERROR', args.map(arg => String(arg)).join(' '));
-  }
+	originalError.apply(console, args);
+	// Avoid double-logging errors caught by the global error handler
+	if (args[0] && !(args[0] instanceof Error)) {
+		logToServer("ERROR", args.map((arg) => String(arg)).join(" "));
+	}
 };
 
 // --- Network Status Handling ---
 
-window.addEventListener('online', () => {
-  syncLogs();
+window.addEventListener("online", () => {
+	syncLogs();
 });
 
 // --- Initial Sync ---
