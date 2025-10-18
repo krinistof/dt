@@ -1,7 +1,7 @@
 import "./logger";
 import { v4 as uuidv4 } from "uuid";
 import { syncInitialState, syncEvents } from "./sync";
-import { addEvent, getAllPosts, putPost, Post } from "./idb";
+import { addEvent, getAllPosts, putPost, type Post } from "./idb";
 // @ts-expect-error js-sha256 is not typed
 import { sha256 } from "js-sha256";
 import { MIN_USER_VOTE, MAX_USER_VOTE } from "./constants";
@@ -28,12 +28,38 @@ function renderPosts() {
 	posts.sort((a, b) => b.totalScore - a.totalScore);
 
 	postsContainer.innerHTML = "";
-	for (post of posts) {
+	for (const post of posts) {
 		const postElement = document.createElement("div");
 		postElement.dataset.hash = post.content_hash;
+
+    let contentHtml = "";
+
+    try {
+      const metadata = JSON.parse(post.content);
+      switch (metadata.type) {
+        case "music":
+          // TODO tag for thumbnail if backend is done
+          // <img src="${metadata.thumbnail_url}" alt="Album art for ${metadata.title} from ${metadata.artist}" width="100">
+          contentHtml = `
+            <div>
+              <h3>${metadata.title}</h3> 
+              <p>${metadata.artist}</p> 
+            </div>
+          `;
+          break;
+
+        default:
+          console.warn("this post contained some unexpected json", metadata);
+          break;
+      }
+    } catch (error) {
+      // not JSON, display it raw
+      contentHtml = `<p>${post.content}</p>`;
+    }
+
 		postElement.innerHTML = `
       <div>
-        <p>${post.content}</p>
+        ${contentHtml}
         <p class="score">
           Score: ${post.totalScore} 
           (Base: ${post.base_score}, User: ${post.user_score})
