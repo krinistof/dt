@@ -10,13 +10,16 @@ sequenceDiagram
 
 
     Note over Client,Database: client's token gets validated before every interaction
-    Note left of Client: opens URL with token
-    
+    Note left of Client: opened URL with token
+    Client->>Server: secret user token
+    Server<<->>Database: checks whitelist
+    Server-->>Client: 
+
     loop sync events to clients
         Client->>+Server: last received `server_timestamp` (if any)
         Server<<->>Database: fetch events since timestamp
         Note right of Server: mask events to hide other user's secrets
-        Server->>-Client: `masked_events[]`, `server_timestamp`
+        Server-->>-Client: `masked_events[]`, `server_timestamp`
     end
 
 
@@ -34,6 +37,7 @@ sequenceDiagram
     Note right of Server: allow update of score
     Server->>Database: insert `vote` event<br>(`user_token`, `content_hash`, `score`)
     Server<<-->>-Client: sync new events
+
 ```
 
 # From events to rendering
