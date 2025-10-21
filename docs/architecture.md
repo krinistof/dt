@@ -2,6 +2,7 @@
 
 ```mermaid
 sequenceDiagram
+    autonumber
     participant Client
     box rgba(31, 161, 250, .5) Democratic Tier
         participant Server
@@ -44,7 +45,7 @@ sequenceDiagram
 
 ```mermaid
 graph TD
-     subgraph "Client"
+    subgraph "Client"
          subgraph "Local Event Queue"
              E1(Post <br> hash: 'abc', ...)
              E2(UpdateScore <br> base_score: 125)
