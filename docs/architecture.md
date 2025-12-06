@@ -9,70 +9,61 @@ sequenceDiagram
         participant Database@{type: "database"}
     end
 
+    Note over Client: User scans QR.<br/>Loads GroupKey & UserKey.<br/>Derives UserPubKey.
 
-    Note over Client,Database: client's token gets validated before every interaction
-    Note left of Client: opened URL with token
-    Client->>Server: secret user token
-    Server<<->>Database: checks whitelist
-    Server-->>Client: 
-
-    loop sync events to clients
-        Client->>+Server: last received `server_timestamp` (if any)
-        Server<<->>Database: fetch events since timestamp
-        Note right of Server: mask events to hide other user's secrets
-        Server-->>-Client: `masked_events[]`, `server_timestamp`
+    loop Sync
+        Client->>+Server: Get events since `last_timestamp`
+        Server<<->>Database: Select * from events > timestamp
+        Server-->>-Client: Returns `SignedEvents[]`
+        
+        Note over Client: Client iterates events:<br/>1. Check signature in whitelist<br/>2. Decrypt with GroupKey<br/>3. Update UI
     end
 
-
-    Note left of Client: created new post
-
-    Client->>+Server: post content
-    Note right of Server: hashes content for unique key
-    Server->>Database: insert `post` event<br>(`content_hash`, `content`)
-    Server<<-->>-Client: sync new events
-
-
-    Note left of Client: voted with score 123
+    Note left of Client: User posts "Hello"
     
-    Client->>+Server: post's `content_hash`, `score`
-    Note right of Server: allow update of score
-    Server->>Database: insert `vote` event<br>(`user_token`, `content_hash`, `score`)
-    Server<<-->>-Client: sync new events
-
+    Note over Client: 1. Create JSON: {type: "post", txt: "Hello"}<br/>2. Encrypt with GroupKey -> `CipherBytes`<br/>3. Sign `CipherBytes` with UserPrivKey
+    
+    Client->>+Server: Push EventRequest:<br/>(UserPubKey, Signature, CipherBytes)
+    
+    Note right of Server: 1. Check if UserPubKey in Whitelist<br/>2. Verify Signature matches CipherBytes<br/>3. DO NOT DECRYPT
+    
+    alt Verification Failed
+        Server-->>Client: 403 Go Away
+    else Verified
+        Server->>Database: INSERT INTO events (pubkey, sig, blob, timestamp)
+        Server-->>-Client: 200 OK (EventID)
+    end
+    
+    Note left of Client: User votes
+    
+    Note over Client: 1. Create JSON:<br/>{type: "vote", ref: signature, val: 1234}<br/>2. Encrypt with GroupKey -> `CipherBytes`<br/>3. Sign `CipherBytes` with UserPrivKey
+    
+    Client->>Server: Push EventRequest:<br/>(UserPubKey, Sig, CipherBytes)
+    Note right of Server: Server has NO IDEA this is a vote.<br/>It just sees another valid blob.
+    Server->>Database: if valid insert...
 ```
 
 # From events to rendering
 
 ```mermaid
-graph TD
-    subgraph "Client"
-         subgraph "Local Event Queue"
-             E1(Post <br> hash: 'abc', ...)
-             E2(UpdateScore <br> base_score: 125)
-             E3(Vote <br> score: 10)
-             E4(UpdateScore <br> base_score: 135)
-         end
+graph LR
+    subgraph "Group Events (Decrypted)"
+        E1("{Type: Post, ID: A, Author: Bob,...}")
+        E2("{Type: Vote, Ref: A, Val: 1, Author: Alice}")
+        E3("{Type: Vote, Ref: A, Val: 1, Author: Bob}")
+        E4("{Type: Vote, Ref: A, Val: 2, Author: Alice}")
+    end
 
-         A[Aggregator <br> WASM]
+    subgraph "Aggregator"
+        Reducer[Reducer Function<br/>'Map&lt;ContentHash, State&gt;']
+    end
 
-         subgraph State ["Derived State (Post 'abc')"]
-             S1["content: '...'",]
-             S2["base_score: 135",]
-             S3["user_score: 10"]
-         end
+    subgraph "Derived UI"
+        Store[Local State Store]
+        S1("Post A State:<br/>- Content: '...'<br/>- Votes: {Alice: 2, Bob: 1}<br/>- Score: 3")
+    end
 
-         subgraph "UI View"
-            UI("Content: ...<br>Total Score: 145")
-         end
-     end
 
-     E1 --> A
-     E2 --> A
-     E3 --> A
-     E4 --> A
-
-     A --> State
-     S1 --> UI
-     S2 --> UI
-     S3 --> UI
+    E1 & E2 & E3 & E4 --> Reducer
+    Reducer --> Store
 ```
