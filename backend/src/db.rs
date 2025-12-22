@@ -1,7 +1,7 @@
 use anyhow::Result;
 use sqlx::SqlitePool;
 
-use crate::dt::Event;
+use crate::dt_proto::Event;
 
 pub type Db = SqlitePool;
 const DEFAULT_SQLITE_URL: &str = "sqlite://dt.db?mode=rwc";

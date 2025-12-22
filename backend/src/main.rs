@@ -4,24 +4,24 @@ use serde::{Deserialize, Serialize};
 use tonic::{Request, Response, Status};
 use tower_http::services::ServeDir;
 use tracing::info;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use dt::init_logging;
 
 mod db;
 
-pub mod log {
+pub mod log_proto {
     tonic::include_proto!("log.v1");
 }
 
-pub mod dt {
+pub mod dt_proto {
     tonic::include_proto!("dt.v1");
 }
 
-use log::{
+use log_proto::{
     log_collector_service_server::{LogCollectorService, LogCollectorServiceServer},
     LogRequest, LogResponse,
 };
 
-use dt::{
+use dt_proto::{
     dt_server::{Dt, DtServer},
     Event, GetInitialStateRequest, GetInitialStateResponse, Post, SubmitEventRequest,
     SubmitEventResponse, SyncEventsRequest, SyncEventsResponse,
@@ -78,7 +78,7 @@ impl Dt for DtService {
         &self,
         request: Request<SubmitEventRequest>,
     ) -> Result<Response<SubmitEventResponse>, Status> {
-        let crate::dt::SubmitEventRequest { user_token, event } = request.into_inner();
+        let crate::dt_proto::SubmitEventRequest { user_token, event } = request.into_inner();
 
         let valid = db::validate_token(&self.db, &user_token)
             .await
@@ -220,23 +220,17 @@ impl Dt for DtService {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::new(
-            std::env::var("RUST_LOG").unwrap_or_else(|_| "dt=debug,tower_http=debug".into()),
-        ))
-        .with(tracing_subscriber::fmt::layer().json())
-        .init();
+    let _guard = init_logging();
 
     let addr = "0.0.0.0:8080".parse()?;
-    let log_service = LogCollector::default();
-    let db = db::new().await?;
-    let dt_service = DtService::new(db);
-
     info!("WebService listening on {}", addr);
 
-    let log_grpc_service = LogCollectorServiceServer::new(log_service);
+    let log_collector_service = LogCollector::default();
+    let log_grpc_service = LogCollectorServiceServer::new(log_collector_service);
     let log_grpc_web_service = tonic_web::enable(log_grpc_service);
 
+    let sqlite = db::new().await?;
+    let dt_service = DtService::new(sqlite);
     let dt_grpc_service = DtServer::new(dt_service);
     let dt_grpc_web_service = tonic_web::enable(dt_grpc_service);
 
