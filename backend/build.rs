@@ -4,6 +4,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     tonic_build::configure()
         .build_client(false)
         .build_server(true)
+        .type_attribute("dt.v1.Event", "#[derive(sqlx::FromRow)]")
         .compile(
             &["../proto/log/v1/log.proto", "../proto/dt/v1/dt.proto"],
             &["../proto"],

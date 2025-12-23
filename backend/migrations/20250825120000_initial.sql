@@ -1,25 +1,8 @@
--- Add migration script here
-CREATE TABLE tokens (
-    token TEXT PRIMARY KEY NOT NULL
-);
+CREATE TABLE IF NOT EXISTS event_queue (
+    pub_key BLOB NOT NULL,
+    signature BLOB PRIMARY KEY NOT NULL,
+    event_blob BLOB NOT NULL,
+    server_timestamp_ms INTEGER NOT NULL
+) STRICT;
 
-CREATE TABLE global_event_queue (
-    event_id TEXT PRIMARY KEY NOT NULL,
-    event_type TEXT NOT NULL,
-    payload TEXT NOT NULL,
-    server_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
-);
-
-CREATE TABLE posts (
-    post_id TEXT PRIMARY KEY NOT NULL,
-    content TEXT NOT NULL,
-    last_updated TIMESTAMP NOT NULL
-);
-
-CREATE TABLE votes (
-    post_id TEXT NOT NULL,
-    user_token TEXT NOT NULL,
-    decision INTEGER NOT NULL CHECK (decision >= -127 AND decision <= 128),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    PRIMARY KEY (post_id, user_token)
-);
+CREATE INDEX IF NOT EXISTS idx_event_queue_server_timestamp ON event_queue (server_timestamp_ms);

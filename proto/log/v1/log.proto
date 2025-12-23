@@ -2,14 +2,14 @@ syntax = "proto3";
 
 package log.v1;
 
+// Collects console logs from clients for debugging
 service LogCollectorService {
-  rpc Log (LogRequest) returns (LogResponse);
+  // Endpoint for clients to send
+  rpc Log(LogRequest) returns (LogResponse);
 }
 
 message LogRequest {
   string message = 1;
 }
 
-message LogResponse {
-  bool success = 1;
-}
+message LogResponse {}

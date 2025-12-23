@@ -2,51 +2,38 @@ syntax = "proto3";
 
 package dt.v1;
 
+// Stores encrypted data from verifiable source. The server is agnostic to the content of 'event_blob'
 message Event {
-    string client_key = 1;
-    string action = 2;
-    string payload = 3;
-    int64 created_at = 4;
+  // Ed25519 Public Key of the user (32 bytes)
+  bytes pub_key = 1;
+
+  // Ed25519 Signature of the event_blob (64 bytes)
+  bytes signature = 2;
+
+  // The encrypted content (opaque to the server)
+  bytes event_blob = 3;
+
+  // Server-assigned timestamp (Unix epoch milliseconds)
+  // NOTE: Ignored in PushRequest
+  int64 server_timestamp_ms = 4;
 }
 
-message Post {
-    string post_id = 1;
-    string content = 2;
-    int64 last_updated = 3;
-    sint32 base_score = 4;
-    sint32 user_score = 5;
+message SyncRequest {
+  // Events to push to the server
+  // NOTE: `Event.server_timestamp` will be overridden
+  repeated Event new_events = 1;
+  // Return events with server_timestamp > since_timestamp
+  int64 since_timestamp_ms = 2;
 }
 
-message SubmitEventRequest {
-    string user_token = 1;
-    Event event = 2;
-}
-
-message SubmitEventResponse {
-    bool success = 1;
-}
-
-message GetInitialStateRequest {
-    string user_token = 1;
-}
-
-message GetInitialStateResponse {
-    repeated Post posts = 1;
-    int64 server_timestamp = 2;
-}
-
-message SyncEventsRequest {
-    string user_token = 1;
-    int64 since_timestamp = 2;
-}
-
-message SyncEventsResponse {
-    repeated Event events = 1;
-    int64 server_timestamp = 2;
+message SyncResponse {
+  // Delta from the last sync
+  repeated Event events = 1;
+  // Current timestamp of the server
+  int64 server_timestamp_ms = 2;
 }
 
 service Dt {
-    rpc SubmitEvent(SubmitEventRequest) returns (SubmitEventResponse);
-    rpc GetInitialState(GetInitialStateRequest) returns (GetInitialStateResponse);
-    rpc SyncEvents(SyncEventsRequest) returns (SyncEventsResponse);
+  // Sync events from the log (and optionally push new ones).
+  rpc Sync(SyncRequest) returns (SyncResponse);
 }
