@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  buf:
+    name: Buf Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: "1.54.0"
+      - uses: bufbuild/buf-lint-action@v1
+        with:
+          input: 'proto'
+      - name: Check Formatting
+        run: buf format --diff --exit-code || echo "::warning title=Buf Format::Formatting issues found"
+
+  frontend:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: "1.54.0"
+      - name: Install Dependencies
+        run: npm ci
+      - name: Generate Proto
+        run: npm run gen-proto
+      - name: Lint
+        run: npm run lint
+      - name: Test
+        run: npm test
+      - name: Build
+        run: npm run build
+
+  backend:
+    name: Backend CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: "1.54.0"
+      - name: Install Frontend Deps
+        run: |
+          cd ../frontend
+          npm ci
+          npm run gen-proto
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: arduino/setup-protoc@v3
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: backend
+      - name: Check Formatting
+        run: cargo fmt --all -- --check || echo "::warning title=Rust Format::Formatting issues found"
+      - name: Lint
+        run: cargo clippy -- -D warnings || echo "::warning title=Clippy::Linting issues found"
+      - name: Build
+        run: cargo build --verbose
+      - name: Test
+        run: cargo test --verbose

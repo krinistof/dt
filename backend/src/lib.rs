@@ -21,7 +21,7 @@ use log_proto::{
 
 use dt_proto::{
     SyncRequest, SyncResponse,
-    dt_server::Dt,
+    dt_service_server::DtService,
 };
 
 #[derive(Debug, Default)]
@@ -38,18 +38,18 @@ impl LogCollectorService for LogCollector {
 }
 
 #[derive(Debug)]
-pub struct DtService {
+pub struct DtInstance {
     db: db::Db,
 }
 
-impl DtService {
+impl DtInstance {
     pub fn new(db: db::Db) -> Self {
         Self { db }
     }
 }
 
 #[tonic::async_trait]
-impl Dt for DtService {
+impl DtService for DtInstance {
     #[tracing::instrument(skip(self))]
     async fn sync(&self, request: Request<SyncRequest>) -> Result<Response<SyncResponse>, Status> {
         let SyncRequest {

@@ -1,6 +1,6 @@
 use anyhow::Result;
 use axum::{Router, routing::any_service};
-use dt::{DtService, LogCollector, dt_proto::dt_server::DtServer, init_logging, log_proto::log_collector_service_server::LogCollectorServiceServer};
+use dt::{DtInstance, LogCollector, dt_proto::dt_service_server::DtServiceServer, init_logging, log_proto::log_collector_service_server::LogCollectorServiceServer};
 use tower_http::services::ServeDir;
 use tracing::info;
 use dt::db;
@@ -17,8 +17,8 @@ async fn main() -> Result<()> {
     let log_grpc_web_service = tonic_web::enable(log_grpc_service);
 
     let sqlite = db::new().await?;
-    let dt_service = DtService::new(sqlite);
-    let dt_grpc_service = DtServer::new(dt_service);
+    let dt_instance = DtInstance::new(sqlite);
+    let dt_grpc_service = DtServiceServer::new(dt_instance);
     let dt_grpc_web_service = tonic_web::enable(dt_grpc_service);
 
     let static_files_service = any_service(ServeDir::new("../frontend/dist"));
