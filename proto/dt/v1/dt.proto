@@ -28,7 +28,7 @@ message SyncRequest {
   int64 since_timestamp_ms = 2;
 }
 
-// Outgoing response to client with events since previos sync
+// Outgoing response to client with events since previous sync
 message SyncResponse {
   // Delta from the last sync
   repeated Event events = 1;
@@ -37,7 +37,7 @@ message SyncResponse {
   int64 server_timestamp_ms = 2;
 }
 
-// Service for clients to syncronize events
+// Service for clients to synchronize events
 service DtService {
   // Sync events from the log (and optionally push new ones).
   rpc Sync(SyncRequest) returns (SyncResponse);
