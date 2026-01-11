@@ -1,9 +1,13 @@
 use anyhow::Result;
 use axum::{Router, routing::any_service};
-use dt::{DtInstance, LogCollector, dt_proto::dt_service_server::DtServiceServer, init_logging, log_proto::log_collector_service_server::LogCollectorServiceServer};
+use dt::db;
+use dt::{
+    DtInstance, LogCollector, init_logging,
+    dt_proto::dt_service_server::DtServiceServer,
+    log_proto::log_collector_service_server::LogCollectorServiceServer,
+};
 use tower_http::services::ServeDir;
 use tracing::info;
-use dt::db;
 
 #[tokio::main]
 async fn main() -> Result<()> {

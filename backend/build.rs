@@ -10,28 +10,30 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             &["../proto"],
         )?;
 
-    let profile = env::var("PROFILE").unwrap();
-    let npm_command = if profile == "release" {
-        "build"
-    } else {
-        "build:debug"
-    };
+    if cfg!(feature = "build_frontend") {
+        let profile = env::var("PROFILE").unwrap();
+        let npm_command = if profile == "release" {
+            "build"
+        } else {
+            "build:debug"
+        };
 
-    let output = Command::new("npm")
-        .arg("run")
-        .arg(npm_command)
-        .current_dir("../frontend")
-        .output()?;
+        let output = Command::new("npm")
+            .arg("run")
+            .arg(npm_command)
+            .current_dir("../frontend")
+            .output()?;
 
-    if !output.status.success() {
-        panic!(
-            "npm build failed:\nstdout: {}\nstderr: {}",
-            String::from_utf8_lossy(&output.stdout),
-            String::from_utf8_lossy(&output.stderr)
-        );
+        if !output.status.success() {
+            panic!(
+                "npm build failed:\nstdout: {}\nstderr: {}",
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            );
+        }
+
+        println!("cargo:rerun-if-changed=../frontend");
     }
-
-    println!("cargo:rerun-if-changed=../frontend");
 
     Ok(())
 }

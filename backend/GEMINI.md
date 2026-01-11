@@ -13,16 +13,10 @@ The server's primary role is to be a verifiable, agnostic bulletin board. It sto
 ## Endpoints
 
 The service primarily exposes service endpoints for:
-*   **Push:** Receiving new encrypted events `(UserPubKey, Signature, CipherBytes)`.
-*   **Sync:** Serving a list of events since a given timestamp.
-*   **Log:** Receiving client logs for debugging.
+*   **Sync:** Collects incoming events, and returns a list of new events since given timestamp.
+*   **Log:** Receive client logs for debugging.
 
 ## Building and Running
-
-### Prerequisites
-
-*   Rust: [https://www.rust-lang.org/tools/install](https://www.rust-lang.org/tools/install)
-*   Protobuf Compiler: [https://grpc.io/docs/protoc-installation/](https://grpc.io/docs/protoc-installation/)
 
 ### Building
 
@@ -37,7 +31,3 @@ This command also builds the frontend assets, and fails if the frontend cannot b
 ### Running
 
 The developer is responsible to run the server. If not asked otherwise, don't try to run it, ask the developer.
-
-## Development Conventions
-
-The project follows standard Rust conventions. The code is formatted using `rustfmt` and checked for errors using `clippy`.

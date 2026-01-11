@@ -1,29 +1,27 @@
 #![warn(missing_docs)]
+//! Library for implementing the backend functions for the Democratic Tier service. 
+use tonic::{Request, Response, Status};
+use tracing::info;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use tracing::info;
-use tonic::{Request, Response, Status};
 
 pub mod db;
 
+/// Generated crate from log protobuf definition by `buf`.
 pub mod log_proto {
     tonic::include_proto!("log.v1");
 }
 
+/// Generated crate from dt protobuf definition by `buf`.
 pub mod dt_proto {
     tonic::include_proto!("dt.v1");
 }
 
-use log_proto::{
-    LogRequest, LogResponse,
-    log_collector_service_server::LogCollectorService,
-};
+use log_proto::{LogRequest, LogResponse, log_collector_service_server::LogCollectorService};
 
-use dt_proto::{
-    SyncRequest, SyncResponse,
-    dt_service_server::DtService,
-};
+use dt_proto::{SyncRequest, SyncResponse, dt_service_server::DtService};
 
+/// Unit struct to implement the log collector service on top of.
 #[derive(Debug, Default)]
 pub struct LogCollector {}
 
@@ -37,12 +35,14 @@ impl LogCollectorService for LogCollector {
     }
 }
 
+/// Struct for implementing the Democratic Tier service on top of the database.
 #[derive(Debug)]
 pub struct DtInstance {
     db: db::Db,
 }
 
 impl DtInstance {
+    /// Creates new instance.
     pub fn new(db: db::Db) -> Self {
         Self { db }
     }
@@ -69,7 +69,7 @@ impl DtService for DtInstance {
             .await
             .map_err(|e| Status::internal(e.to_string()))?;
 
-        let mut latest_timestamp = 0;
+        let mut latest_timestamp = chrono::Utc::now().timestamp_millis();
         for event in &new_events {
             latest_timestamp = db::insert_event(&self.db, event)
                 .await
@@ -85,6 +85,8 @@ impl DtService for DtInstance {
     }
 }
 
+/// Initializes logging for both stdout in easy to read format, and rotating log files as `jsonl` for
+/// processing with monitoring tools.
 pub fn init_logging() -> WorkerGuard {
     let file_appender = tracing_appender::rolling::hourly("logs", "dt_log.jsonl");
     let (log_writer, guard) = tracing_appender::non_blocking(file_appender);

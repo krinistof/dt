@@ -2,14 +2,17 @@ syntax = "proto3";
 
 package log.v1;
 
-// Collects console logs from clients for debugging
+// Collects console logs from clients for debugging.
 service LogCollectorService {
-  // Endpoint for clients to send
+  // Endpoint for clients to send error log messages used for debugging.
   rpc Log(LogRequest) returns (LogResponse);
 }
 
+// Request containing a single log message.
 message LogRequest {
+  // Error formatted to string with severity level and error message.
   string message = 1;
 }
 
+// Unit struct response.
 message LogResponse {}
