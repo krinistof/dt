@@ -1,14 +1,11 @@
 use std::{env, process::Command};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tonic_build::configure()
-        .build_client(false)
-        .build_server(true)
-        .type_attribute("dt.v1.Event", "#[derive(sqlx::FromRow)]")
-        .compile(
-            &["../proto/log/v1/log.proto", "../proto/dt/v1/dt.proto"],
-            &["../proto"],
-        )?;
+    connectrpc_axum_build::compile_dir("../proto")
+        .with_prost_config(|config| {
+            config.type_attribute("dt.v1.Event", "#[derive(sqlx::FromRow)]");
+        })
+        .compile()?;
 
     if cfg!(feature = "build_frontend") {
         let profile = env::var("PROFILE").unwrap();
