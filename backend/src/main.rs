@@ -7,11 +7,11 @@ use dt::db;
 use dt::{
     init_logging,
     //dt_connectrpc, dt_proto::dtservice,
-    log_connectrpc, log_proto::logcollectorservice,
+    log_connectrpc,
+    log_proto::logcollectorservice,
 };
 use tower_http::services::ServeDir;
 use tracing::info;
-
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -24,7 +24,7 @@ async fn main() -> Result<()> {
     let log_service = logcollectorservice::LogCollectorServiceBuilder::new()
         .log(log_connectrpc)
         .build();
-    
+
     //let log_grpc_web_service = tonic_web::enable(log_grpc_service);
 
     /*

@@ -1,5 +1,5 @@
 #![warn(missing_docs)]
-//! Library for implementing the backend functions for the Democratic Tier service. 
+//! Library for implementing the backend functions for the Democratic Tier service.
 use connectrpc_axum::{ConnectError, ConnectRequest, ConnectResponse};
 use tracing::info;
 use tracing_appender::non_blocking::WorkerGuard;
@@ -17,14 +17,15 @@ pub mod dt_proto {
     include!(concat!(env!("OUT_DIR"), "/dt.v1.rs"));
 }
 
-use log_proto::{LogRequest, LogResponse, logcollectorservice};
 use dt_proto::{SyncRequest, SyncResponse, dtservice};
-
+use log_proto::{LogRequest, LogResponse, logcollectorservice};
 
 /*
 #[tracing::instrument]
 */
-pub async fn log_connectrpc(ConnectRequest(req): ConnectRequest<LogRequest>) -> Result<ConnectResponse<LogResponse>, ConnectError> {
+pub async fn log_connectrpc(
+    ConnectRequest(req): ConnectRequest<LogRequest>,
+) -> Result<ConnectResponse<LogResponse>, ConnectError> {
     info!("Client log: {}", req.message);
 
     Ok(ConnectResponse::new(LogResponse {}))

@@ -16,4 +16,4 @@ jobs:
       - name: Install dependencies
         run: pip install codespell
       - name: Check spelling
-        run: git ls-files | xargs codespell -L afterAll
+        run: git ls-files | xargs codespell -L afterAll,inout
