@@ -1,9 +1,11 @@
 #![warn(missing_docs)]
 //! Library for implementing the backend functions for the Democratic Tier service.
+use axum::{routing::any_service, Router};
 use connectrpc_axum::{ConnectError, ConnectRequest, ConnectResponse};
 use tracing::info;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use tower_http::services::ServeDir;
 
 pub mod db;
 
@@ -17,13 +19,22 @@ pub mod dt_proto {
     include!(concat!(env!("OUT_DIR"), "/dt.v1.rs"));
 }
 
-use dt_proto::{SyncRequest, SyncResponse, dtservice};
+
 use log_proto::{LogRequest, LogResponse, logcollectorservice};
 
+pub fn connect_router() -> Router {
+    logcollectorservice::LogCollectorServiceBuilder::new()
+        .log(collect_log)
+        .build_connect()
+}
+
+pub fn static_files_service() -> Router {
+    Router::new().fallback_service(any_service(ServeDir::new("../frontend/dist")))
+}
 /*
 #[tracing::instrument]
 */
-pub async fn log_connectrpc(
+async fn collect_log(
     ConnectRequest(req): ConnectRequest<LogRequest>,
 ) -> Result<ConnectResponse<LogResponse>, ConnectError> {
     info!("Client log: {}", req.message);
@@ -31,6 +42,7 @@ pub async fn log_connectrpc(
     Ok(ConnectResponse::new(LogResponse {}))
 }
 
+/*
 /// Struct for implementing the Democratic Tier service on top of the database.
 #[derive(Debug)]
 pub struct DtInstance {
@@ -43,6 +55,7 @@ impl DtInstance {
         Self { db }
     }
 }
+*/
 
 /*
 pub async fn sync(&self, request: Request<SyncRequest>) -> Result<Response<SyncResponse>, Status> {
