@@ -1,24 +1,12 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Democratic Tier</title>
-  </head>
+  <head><meta charset="UTF-8"><title>democratic tier</title></head>
   <body>
-    <h1>Democratic Tier</h1>
-    
-    <form id="post-form">
-      <textarea id="post-content" rows="4" cols="50" placeholder="What's on your mind?"></textarea>
-      <br>
-      <button type="submit">Post</button>
-    </form>
-
-    <hr>
-
-    <h2>Posts</h2>
-    <div id="posts-container"></div>
-
-    <script type="module" src="/src/app.ts"></script>
+    <div id="app">
+      <input type="text" id="log-input" placeholder="type a log message..." />
+      <button id="call-btn">send</button>
+      <pre id="output"></pre>
+    </div>
+    <script src="/main.js"></script>
   </body>
 </html>

@@ -1,18 +1,32 @@
 # Project Overview
 
-This is a local-first client for a voting system named "dt". It is written in TypeScript and uses Vite for building. It communicates with a backend using gRPC (protobuf and connectrpc). The application is set up to capture and log errors and warnings, storing them locally in IndexedDB and syncing them with a server.
+This is the local-first client for "Democratic Tier" (dt). It is written in TypeScript and uses Vite for building. It communicates with the backend using gRPC (Connect RPC).
 
-# Building and Running
+The client is responsible for all business logic, cryptography, and state management.
 
-*   **Install dependencies:** `npm install`
-*   **Run development server:** `npm run dev`
-*   **Build for production:** `npm run build` (Note: this is typically handled automatically by the backend's build process)
-*   **Preview production build:** `npm run preview`
-*   **Generate protobuf code:** `npm run gen-proto`
+## Architecture
+
+### Key Concepts
+
+*   **Local-First:** Data is stored locally (e.g., in memory or IndexedDB) and synced with the server.
+*   **Cryptography:**
+    *   **GroupKey:** Used to encrypt/decrypt content. Shared among valid group members.
+    *   **UserKey:** User's private identity key. Used to sign events.
+*   **Event Loop:**
+    1.  **Fetch:** Download encrypted events from the server.
+    2.  **Decrypt & Verify:** Decrypt using GroupKey, verify signature matches the sender.
+    3.  **Reduce:** Apply events to a local Reducer to derive state (e.g., list of posts, vote tallies).
+
+### State Management
+
+The application state is derived purely from the event log.
+`Events -> Decrypt -> Reducer -> Store -> UI`
+
+*   **Posts:** Created by encrypting a JSON payload `{type: "post", txt: "..."}`.
+*   **Votes:** Created by encrypting a JSON payload `{type: "vote", ref: "signature_of_post", val: 1}`.
 
 # Development Conventions
 
 *   The project uses TypeScript with strict linting rules.
 *   Modules are resolved using bundler mode, and path aliases are configured for `@/*` to point to the root directory.
-*   The application uses a global error handler to catch and log all uncaught exceptions and unhandled promise rejections.
-*   Console `warn` and `error` are overridden to send logs to the server.
+*   The application uses global error handlers to catch and log all uncaught exceptions and unhandled promise rejections.

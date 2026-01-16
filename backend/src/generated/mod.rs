@@ -1,1 +1,0 @@
-// This file is intentionally left empty. It's here to make `generated` a module.

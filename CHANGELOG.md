@@ -73,7 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     -   Updated to monolith server process for serving static assets and gRPC in parallel
 -   **Frontend:**
     -   Addressed lint findings for browser compatibility and best practices
-    -   Improved compatibility with replacting hashing with package for non-secure contexts
+    -   Improved compatibility with replacing hashing with package for non-secure contexts
     -   Implemented both UI state and event queue in IndexedDB
 -   **Platform:**
     -   Added text posting

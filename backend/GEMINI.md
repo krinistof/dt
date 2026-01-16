@@ -1,15 +1,22 @@
 # Project Overview
 
-This project is a backend service for collecting logs. It is built with Rust and uses the tonic library to implement a gRPC-web service.
+This project is the backend service for "Democratic Tier" (dt). It is built with Rust and uses the `tonic` library to implement a gRPC-web service.
+The server's primary role is to be a verifiable, agnostic bulletin board. It stores and synchronizes encrypted events without knowing their contents.
 
-The service exposes a single endpoint, `log`, which accepts a log message and returns a success status. The service is configured with CORS to allow requests from any origin, which is useful for development but should be restricted in production.
+## Core Responsibilities
+
+1.  **Event Storage:** Accepts and stores encrypted event blobs.
+2.  **Access Control:** Verifies that the publisher of an event is in the allowed `whitelist` using their Public Key.
+3.  **Integrity:** Verifies that the event signature matches the encrypted blob.
+4.  **Privacy:** **DOES NOT DECRYPT** any user content. It sees and stores only opaque byte arrays providing data breach resillence.
+
+## Endpoints
+
+The service primarily exposes service endpoints for:
+*   **Sync:** Collects incoming events, and returns a list of new events since given timestamp.
+*   **Log:** Receive client logs for debugging.
 
 ## Building and Running
-
-### Prerequisites
-
-*   Rust: [https://www.rust-lang.org/tools/install](https://www.rust-lang.org/tools/install)
-*   Protobuf Compiler: [https://grpc.io/docs/protoc-installation/](https://grpc.io/docs/protoc-installation/)
 
 ### Building
 
@@ -19,32 +26,8 @@ To build the project, run the following command:
 cargo build
 ```
 
-This command also builds the frontend assets.
+This command also builds the frontend assets, and fails if the frontend cannot be built.
 
 ### Running
 
-To run the service, use the following command:
-
-```bash
-cargo run
-```
-
-The service will start and listen on `[::1]:50051`.
-
-### Testing
-
-There are no tests in this project yet.
-
-## Development Conventions
-
-The project follows standard Rust conventions. The code is formatted using `rustfmt` and checked for errors using `clippy`.
-
-### Protobuf
-
-The gRPC service is defined in the `proto/log/v1/log.proto` file. The Rust code for the service is generated automatically by the `build.rs` script.
-
-To regenerate the Rust code after changing the protobuf definition, simply build the project again:
-
-```bash
-cargo build
-```
+The developer is responsible to run the server. If not asked otherwise, don't try to run it, ask the developer.

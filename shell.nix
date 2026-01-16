@@ -3,8 +3,7 @@
 pkgs.mkShell {
   buildInputs = with pkgs; [
     # Rust
-    rustc
-    cargo
+    rustup
     rustfmt
     clippy
     openssl
@@ -12,10 +11,12 @@ pkgs.mkShell {
 
     # Javascript
     nodejs_24
+    esbuild
     biome
 
     # Protobuf
     buf
+    protoc-gen-es
 
     # Gemini
     gemini-cli

@@ -1,36 +1,42 @@
 use std::{env, process::Command};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tonic_build::configure()
-        .build_client(false)
-        .build_server(true)
-        .compile(
-            &["../proto/log/v1/log.proto", "../proto/dt/v1/dt.proto"],
-            &["../proto"],
-        )?;
+    connectrpc_axum_build::compile_dir("../proto")
+        .with_prost_config(|config| {
+            config.type_attribute("dt.v1.Event", "#[derive(sqlx::FromRow)]");
+        })
+        .compile()?;
 
-    let profile = env::var("PROFILE").unwrap();
-    let npm_command = if profile == "release" {
-        "build"
-    } else {
-        "build:debug"
-    };
+    if cfg!(feature = "build_frontend") {
+        let npm_install_output = Command::new("npm")
+            .arg("install")
+            .current_dir("../frontend")
+            .output()?;
 
-    let output = Command::new("npm")
-        .arg("run")
-        .arg(npm_command)
-        .current_dir("../frontend")
-        .output()?;
+        if !npm_install_output.status.success() {
+            panic!(
+                "npm install failed:\nstdout: {}\nstderr: {}",
+                String::from_utf8_lossy(&npm_install_output.stdout),
+                String::from_utf8_lossy(&npm_install_output.stderr)
+            );
+        }
 
-    if !output.status.success() {
-        panic!(
-            "npm build failed:\nstdout: {}\nstderr: {}",
-            String::from_utf8_lossy(&output.stdout),
-            String::from_utf8_lossy(&output.stderr)
-        );
+        let output = Command::new("npm")
+            .arg("run")
+            .arg("build")
+            .current_dir("../frontend")
+            .output()?;
+
+        if !output.status.success() {
+            panic!(
+                "npm build failed:\nstdout: {}\nstderr: {}",
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            );
+        }
+
+        println!("cargo:rerun-if-changed=../frontend");
     }
-
-    println!("cargo:rerun-if-changed=../frontend");
 
     Ok(())
 }

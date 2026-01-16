@@ -20,7 +20,7 @@ Trust and visibility go hand in hand!
 The system provides a fully transparent and auditable event log of all votes. Each vote is recorded with a unique, anonymous voter ID, the song ID, the score given, and a timestamp. This allows for complete transparency of the voting process, while still protecting the privacy of the individual voters. The event log is publicly accessible, allowing anyone to verify the results and ensure the fairness of the poll.
 
 ## Total locality for robustness
-No third parties, external dependecies!
+No third parties, external dependencies!
 
 Social networks shouldn't always depend on internet access. Imagine polls in remote locations with limited network access. Setting up a local network with a WiFi access point and a local service, with pre-printed session cards as cookies, each with secret voter token can create a stable live polling system. With isolated networks and a secure way to verify voters without needing the internet we can guarantee only people present can cast their votes.
 

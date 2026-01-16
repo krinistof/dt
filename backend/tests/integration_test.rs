@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use std::process::{Command, Stdio, Child};
     use std::path::PathBuf;
+    use std::process::{Child, Command, Stdio};
     use std::time::Duration;
     use tempfile::NamedTempFile;
 
