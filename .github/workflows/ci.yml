@@ -39,7 +39,7 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Generate Proto
-        run: npm run gen-proto
+        run: npm run generate
       - name: Lint
         run: npm run lint
       - name: Test
@@ -67,7 +67,7 @@ jobs:
         run: |
           cd ../frontend
           npm ci
-          npm run gen-proto
+          npm run generate
       - uses: dtolnay/rust-toolchain@stable
       - uses: arduino/setup-protoc@v3
       - name: Rust Cache

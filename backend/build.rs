@@ -8,16 +8,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .compile()?;
 
     if cfg!(feature = "build_frontend") {
-        let profile = env::var("PROFILE").unwrap();
-        let npm_command = if profile == "release" {
-            "build"
-        } else {
-            "build:debug"
-        };
+        let npm_install_output = Command::new("npm")
+            .arg("install")
+            .current_dir("../frontend")
+            .output()?;
+
+        if !npm_install_output.status.success() {
+            panic!(
+                "npm install failed:\nstdout: {}\nstderr: {}",
+                String::from_utf8_lossy(&npm_install_output.stdout),
+                String::from_utf8_lossy(&npm_install_output.stderr)
+            );
+        }
 
         let output = Command::new("npm")
             .arg("run")
-            .arg(npm_command)
+            .arg("build")
             .current_dir("../frontend")
             .output()?;
 
