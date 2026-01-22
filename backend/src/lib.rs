@@ -1,39 +1,48 @@
-#![warn(missing_docs)]
-//! Library for implementing the backend functions for the Democratic Tier service.
-use axum::{routing::any_service, Router};
+use axum::{extract::State, routing::any_service, Router};
 use connectrpc_axum::{ConnectError, ConnectRequest, ConnectResponse};
+use tower_http::services::ServeDir;
 use tracing::info;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use tower_http::services::ServeDir;
 
 pub mod db;
 
 /// Generated crate from log protobuf definition by `buf`.
+#[allow(missing_docs)]
 pub mod log_proto {
     include!(concat!(env!("OUT_DIR"), "/log.v1.rs"));
 }
 
 /// Generated crate from dt protobuf definition by `buf`.
+#[allow(missing_docs)]
 pub mod dt_proto {
     include!(concat!(env!("OUT_DIR"), "/dt.v1.rs"));
 }
 
+use dt_proto::{dtservice, SyncRequest, SyncResponse};
+use log_proto::{logcollectorservice, LogRequest, LogResponse};
 
-use log_proto::{LogRequest, LogResponse, logcollectorservice};
+/// Returns the ConnectRPC router for the log collector service.
+pub fn connect_router(db: db::Db) -> Router {
+    let dt_router = dtservice::DtServiceBuilder::new()
+        .sync(sync)
+        .with_state(db)
+        .build_connect();
 
-pub fn connect_router() -> Router {
-    logcollectorservice::LogCollectorServiceBuilder::new()
+    let log_router = logcollectorservice::LogCollectorServiceBuilder::new()
         .log(collect_log)
-        .build_connect()
+        .build_connect();
+
+    Router::new().merge(log_router).merge(dt_router)
 }
 
+/// Returns a router that serves static files from the frontend build directory.
+/// TODO DEV ONLY
 pub fn static_files_service() -> Router {
     Router::new().fallback_service(any_service(ServeDir::new("../frontend/dist")))
 }
-/*
+
 #[tracing::instrument]
-*/
 async fn collect_log(
     ConnectRequest(req): ConnectRequest<LogRequest>,
 ) -> Result<ConnectResponse<LogResponse>, ConnectError> {
@@ -42,27 +51,15 @@ async fn collect_log(
     Ok(ConnectResponse::new(LogResponse {}))
 }
 
-/*
-/// Struct for implementing the Democratic Tier service on top of the database.
-#[derive(Debug)]
-pub struct DtInstance {
-    db: db::Db,
-}
-
-impl DtInstance {
-    /// Creates new instance.
-    pub fn new(db: db::Db) -> Self {
-        Self { db }
-    }
-}
-*/
-
-/*
-pub async fn sync(&self, request: Request<SyncRequest>) -> Result<Response<SyncResponse>, Status> {
+#[tracing::instrument]
+pub async fn sync(
+    State(db): State<db::Db>,
+    ConnectRequest(request): ConnectRequest<SyncRequest>,
+) -> Result<ConnectResponse<SyncResponse>, ConnectError> {
     let SyncRequest {
         new_events,
         since_timestamp_ms,
-    } = request.into_inner();
+    } = request;
     // For every database, we have the first event as the public key whitelist,
     // which as an unencrypted JSON array.
     // The first two events are signed with the first key of the whitelist.
@@ -72,15 +69,15 @@ pub async fn sync(&self, request: Request<SyncRequest>) -> Result<Response<SyncR
 
     // TODO crypograpy: check for the first two events, if they're invalid, abort.
 
-    let events = db::get_events_since(&self.db, since_timestamp_ms)
+    let events = db::get_events_since(&db, since_timestamp_ms)
         .await
-        .map_err(|e| Status::internal(e.to_string()))?;
+        .map_err(|e| ConnectError::new(connectrpc_axum::Code::Internal, e.to_string()))?;
 
     let mut latest_timestamp = chrono::Utc::now().timestamp_millis();
     for event in &new_events {
-        latest_timestamp = db::insert_event(&self.db, event)
+        latest_timestamp = db::insert_event(&db, event)
             .await
-            .map_err(|e| Status::internal(e.to_string()))?;
+            .map_err(|e| ConnectError::new(connectrpc_axum::Code::Internal, e.to_string()))?;
     }
 
     let reply = SyncResponse {
@@ -90,7 +87,6 @@ pub async fn sync(&self, request: Request<SyncRequest>) -> Result<Response<SyncR
 
     Ok(ConnectResponse::new(reply))
 }
-*/
 
 /// Initializes logging for both stdout in easy to read format, and rotating log files as `jsonl` for
 /// processing with monitoring tools.

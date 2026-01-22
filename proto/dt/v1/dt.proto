@@ -24,7 +24,7 @@ message SyncRequest {
   // NOTE: `Event.server_timestamp` will be overridden
   repeated Event new_events = 1;
 
-  // Return events with server_timestamp > since_timestamp
+  // Request events with server_timestamp > since_timestamp
   int64 since_timestamp_ms = 2;
 }
 
@@ -33,7 +33,8 @@ message SyncResponse {
   // Delta from the last sync
   repeated Event events = 1;
 
-  // Current timestamp of the server
+  // Current timestamp of the server. This is necessary for client live status
+  // feedback, because this can be more recent than the most recent event.
   int64 server_timestamp_ms = 2;
 }
 

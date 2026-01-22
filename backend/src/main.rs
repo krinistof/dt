@@ -22,7 +22,8 @@ async fn main() -> Result<()> {
     let dt_grpc_web_service = tonic_web::enable(dt_grpc_service);
     */
 
-    let app = static_files_service().merge(connect_router());
+    let sqlite = dt::db::new().await?;
+    let app = static_files_service().merge(connect_router(sqlite));
 
     axum::serve(listener, app).await?;
 

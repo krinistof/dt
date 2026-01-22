@@ -1,4 +1,4 @@
-use std::{env, process::Command};
+use std::process::Command;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     connectrpc_axum_build::compile_dir("../proto")
@@ -15,9 +15,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if !npm_install_output.status.success() {
             panic!(
-                "npm install failed:\nstdout: {}\nstderr: {}",
+                "npm install failed:\nstdout: {}\nstderr: {}\n",
                 String::from_utf8_lossy(&npm_install_output.stdout),
                 String::from_utf8_lossy(&npm_install_output.stderr)
+            );
+        }
+
+        let npm_generate_output = Command::new("npm")
+            .arg("run")
+            .arg("generate")
+            .current_dir("../frontend")
+            .output()?;
+
+        if !npm_generate_output.status.success() {
+            panic!(
+                "npm run generate failed:\nstdout: {}\nstderr: {}\n",
+                String::from_utf8_lossy(&npm_generate_output.stdout),
+                String::from_utf8_lossy(&npm_generate_output.stderr)
             );
         }
 
