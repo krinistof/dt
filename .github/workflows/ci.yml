@@ -7,6 +7,7 @@ on:
 jobs:
   buf:
     name: Buf Check
+    if: github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'docs')
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -22,6 +23,7 @@ jobs:
 
   frontend:
     name: Frontend CI
+    if: github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'docs')
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -49,6 +51,7 @@ jobs:
 
   backend:
     name: Backend CI
+    if: github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'docs')
     runs-on: ubuntu-latest
     defaults:
       run:
