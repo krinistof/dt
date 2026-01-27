@@ -17,6 +17,7 @@ tracing-appender = "0.2"
 chrono = { version = "0.4", features = ["serde"] }
 pbjson = "0.8"
 connectrpc-axum = "*"
+uq = { path = "../uq/server" }
 
 [features]
 default = ["build_frontend"]

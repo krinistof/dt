@@ -1,12 +1,12 @@
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
     use std::process::{Child, Command, Stdio};
     use std::time::Duration;
     use tempfile::NamedTempFile;
 
     struct BackendProcess {
         child: Child,
+        #[allow(dead_code)]
         db_file: NamedTempFile,
     }
 
@@ -61,20 +61,34 @@ mod tests {
     }
 
     #[test]
-    fn run_frontend_integration_tests() {
+    fn run_integration_tests() {
         let _backend_process = start_backend();
 
-        println!("Running frontend tests...");
-        let mut frontend_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        frontend_dir.pop(); // backend -> dt
-        frontend_dir.push("frontend");
+        println!("Verifying static file serving...");
+        let res = reqwest::blocking::get("http://localhost:8080/").expect("Failed to get /");
+        assert!(res.status().is_success(), "Failed to serve index.html");
 
-        let test_status = Command::new("npm")
-            .arg("test")
-            .current_dir(frontend_dir)
-            .status()
-            .expect("Failed to execute frontend tests");
+        println!("Verifying UqService API...");
+        let client = reqwest::blocking::Client::new();
+        // Test Pull (Empty state)
+        let res = client
+            .post("http://localhost:8080/uq.v1.UqService/Pull")
+            .header("Content-Type", "application/json")
+            .body(r#"{ "sinceTimestampMs": "0" }"#)
+            .send()
+            .expect("Failed to call Pull");
 
-        assert!(test_status.success(), "Frontend tests failed");
+        assert!(
+            res.status().is_success(),
+            "Pull request failed: {:?}",
+            res.status()
+        );
+        let body = res.text().expect("Failed to read body");
+        println!("Pull Response: {}", body);
+        // Expect empty events list or similar
+        assert!(
+            body.contains("serverTimestampMs"),
+            "Response missing serverTimestampMs"
+        );
     }
 }

@@ -1,11 +1,8 @@
-use std::{env, process::Command};
+use std::process::Command;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    connectrpc_axum_build::compile_dir("../proto")
-        .with_prost_config(|config| {
-            config.type_attribute("dt.v1.Event", "#[derive(sqlx::FromRow)]");
-        })
-        .compile()?;
+    // Note: We no longer compile protos here, as they are in `uq`.
+    // We just handle the frontend build trigger.
 
     if cfg!(feature = "build_frontend") {
         let npm_install_output = Command::new("npm")
