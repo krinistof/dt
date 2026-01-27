@@ -30,6 +30,7 @@
 
             # Node
             nodejs_22
+            esbuild
             
             # Proto
             buf

@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package uq.v1;
+
+// A generic event in the system.
+message Event {
+  // The topic identifier (Ed25519 Public Key of the topic owner/group).
+  // 32 bytes.
+  bytes topic_pk = 1;
+
+  // The author's identifier (Ed25519 Public Key).
+  // 32 bytes.
+  bytes author_pk = 2;
+
+  // Ed25519 Signature of the payload + topic_pk.
+  // 64 bytes.
+  bytes signature = 3;
+
+  // The actual content (application specific, potentially encrypted).
+  bytes payload = 4;
+
+  // Server-assigned timestamp (Unix epoch milliseconds).
+  int64 server_timestamp_ms = 5;
+}
+
+message PushRequest {
+  repeated Event events = 1;
+}
+
+message PushResponse {
+  // Number of events successfully accepted.
+  int32 accepted_count = 1;
+}
+
+message PullRequest {
+  // Filter by topic (optional? or required? for now optional = all public streams? No, let's require topic for efficiency usually, but maybe 'since' is enough for a global firehose if supported).
+  // For now, let's keep it simple: sync everything since timestamp (good for small apps) or filter.
+  // The user wants "simple multiplayer games", so probably topic-based.
+  // But for the MVP, "Sync since X" is simplest.
+  
+  // Return events with server_timestamp > since_timestamp
+  int64 since_timestamp_ms = 1;
+  
+  // Optional: Filter by specific topics. If empty, syncs all (or server policy decides).
+  repeated bytes filter_topics = 2;
+}
+
+message PullResponse {
+  repeated Event events = 1;
+  int64 server_timestamp_ms = 2;
+}
+
+service UqService {
+  // Push new events to the server.
+  rpc Push(PushRequest) returns (PushResponse);
+  
+  // Pull events from the server.
+  rpc Pull(PullRequest) returns (PullResponse);
+
+  // Submit a log message (telemetry).
+  rpc Log(LogRequest) returns (LogResponse);
+}
+
+message LogRequest {
+  string message = 1;
+}
+
+message LogResponse {}

@@ -1,54 +1,46 @@
-# Plan: Project "UniQue" (uq) Refactor
+# Plan: Project "UniQue" (uq) Extraction
 
-## 1. Project Restructure (Monorepo)
-- [ ] **Workspace Setup**
-    - Create a Cargo workspace root (`Cargo.toml`).
-    - Define workspace members: `crates/uq`, `crates/uq-server`.
-- [ ] **Directory Layout**
-    - `crates/uq`: Core Rust library (logic, storage, crypto).
-    - `crates/uq-server`: Standalone server binary.
-    - `packages/uq-client`: TypeScript client library.
-    - `apps/dt-frontend`: The Democratic Tier frontend (consumer of `uq`).
-    - `proto/uq`: Renamed and updated protocol definitions.
+## 1. `uq` Engine (Future Separate Repo)
+The core sync engine and protocol, to be extracted into `uq/`.
 
-## 2. Core Library (`crates/uq`)
-- [ ] **Move & Refactor Logic**
-    - Port `db.rs` from legacy backend.
+### 1.1 Protocol (`uq/proto`)
+- [ ] **Definitions**
+    - Define generic `Event` with `topic_pk` (32 bytes), `pub_key` (32 bytes), `signature` (64 bytes), `payload` (bytes).
+    - Define `SyncService` (Push/Pull).
+
+### 1.2 Server Library (`uq/server`)
+- [ ] **Core Logic**
+    - Port `db.rs` logic (SQLite).
+    - **Enforce Security**: Validate Ed25519 signatures on *all* writes.
     - Implement `Sync` logic (agnostic event synchronization).
-- [ ] **Cryptography Update (Asymmetric Topics)**
-    - Update data model: `Event` struct to include `topic_pk`.
-    - Update verification: Signature must cover `hash(blob) + topic_pk`.
-    - Drop the old "GroupKey" symmetric encryption model in favor of topic-based keys (or keep encryption as a higher-layer concern, but `uq` enforces the signature structure).
+- [ ] **API**
+    - Expose `UqServer` struct/builder for easy embedding in `dt`.
 
-## 3. Server (`crates/uq-server`)
-- [ ] **Implementation**
-    - ConnectRPC / Axum setup.
-    - Expose `SyncService`.
-    - **New Feature**: Integrate `collect_log` functionality directly (generic client telemetry).
-    - Configurable storage path (SQLite).
+### 1.3 Client Library (`uq/client`)
+- [ ] **Core Logic**
+    - Key Pair generation (Ed25519).
+    - Event Signing.
+    - ConnectRPC client wrapper.
+    - "Log" feature (telemetry).
 
-## 4. Client Library (`packages/uq-client`)
-- [ ] **Extraction**
-    - Extract ConnectRPC client generation.
-    - Extract Crypto logic (Key generation, Signing, Encryption).
-    - Extract "Reducer" pattern / State management helper.
-- [ ] **Features**
-    - Support the new `topic_pk` scheme.
-    - Built-in error reporting (logging) to the server.
+## 2. Democratic Tier (`dt`) Refactor
+The specific application consuming `uq`.
 
-## 5. Build System (Nix Flakes)
-- [ ] **Flake Definition**
-    - `packages.uq-server`: Rust binary.
-    - `packages.uq-client`: NPM package (or just TS sources).
-    - `packages.dt-frontend`: Web app build.
-    - `devShells.default`: Unified dev environment (Rust + Node + Buf).
-- [ ] **CI**
-    - Update GitHub Workflows to use `nix flake check`.
+### 2.1 Backend (`dt/backend`)
+- [ ] **Integration**
+    - Add `uq` as a local path dependency (temporary until published).
+    - Replace internal DB logic with `uq::Server`.
+    - Configure `uq` to store data in `db/dt.db`.
 
-## 6. Democratic Tier (Migration)
-- [ ] **Frontend Update**
-    - Update `dt-frontend` to use `uq-client`.
-    - Update reducers to work with the new `topic` model.
-- [ ] **Cleanup**
-    - Remove legacy `backend/` directory.
-    - Remove `shell.nix`.
+### 2.2 Frontend (`dt/frontend`)
+- [ ] **Refactor**
+    - Use `uq-client` for communication.
+    - **Minimal UI**:
+        - "Generate Identity" button (store in localStorage).
+        - "Join Topic" input.
+        - "Post Message" input.
+        - "Stream" view (simple list).
+
+## 3. Cleanup
+- [ ] Remove legacy `dt/backend/src/db.rs`.
+- [ ] Remove legacy proto files if fully replaced by `uq`.

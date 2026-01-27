@@ -1,12 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head><meta charset="UTF-8"><title>democratic tier</title></head>
+  <head><meta charset="UTF-8"><title>UniQue Demo</title></head>
   <body>
-    <div id="app">
-      <input type="text" id="log-input" placeholder="type a log message..." />
-      <button id="call-btn">send</button>
-      <pre id="output"></pre>
+    <div id="app" style="font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
+      <h1>UniQue (uq) Demo</h1>
+      
+      <div style="margin-bottom: 20px; border: 1px solid #ccc; padding: 10px;">
+        <h3>Identity</h3>
+        <p>Public Key: <span id="user-pk" style="font-family: monospace;">...</span></p>
+        <button id="regen-id-btn">Regenerate Identity</button>
+      </div>
+
+      <div style="margin-bottom: 20px; border: 1px solid #ccc; padding: 10px;">
+        <h3>Channel</h3>
+        <input type="text" id="topic-input" placeholder="Topic ID (hex) or empty for public" style="width: 300px;">
+        <button id="set-topic-btn">Set Topic</button>
+      </div>
+
+      <div style="margin-bottom: 20px;">
+        <input type="text" id="msg-input" placeholder="Type a message..." style="width: 300px;">
+        <button id="send-btn">Send</button>
+      </div>
+
+      <div id="feed" style="border: 1px solid #eee; height: 400px; overflow-y: scroll; padding: 10px;">
+        <!-- Messages go here -->
+      </div>
     </div>
-    <script src="/main.js"></script>
+    <script type="module" src="/main.js"></script>
   </body>
 </html>
