@@ -28,3 +28,26 @@ Social networks shouldn't always depend on internet access. Imagine polls in rem
 Vote on anything!
 
 Why should we only have thoughts, images, songs, videos as options? Why not all of them? The scoring logic is the same regardless.
+
+# Development & Architecture
+
+This repository is being refactored into a **Monorepo** hosting both the core protocol and the application.
+
+## Project Structure
+
+-   **`crates/uq`**: Core Rust library for the **UniQue** protocol (Logic, Storage, Crypto).
+-   **`crates/uq-server`**: Standalone backend server (ConnectRPC + Axum).
+-   **`packages/uq-client`**: TypeScript client library.
+-   **`apps/dt-frontend`**: The Democratic Tier frontend application.
+-   **`proto/uq`**: Protocol Buffer definitions.
+
+## The UniQue Protocol
+
+**Democratic Tier** is built on top of **UniQue**, a decentralized event synchronization protocol. 
+UniQue uses **Asymmetric Topics** where events are cryptographically bound to a topic via `topic_pk`.
+
+For more details on the architecture, see [docs/architecture.md](docs/architecture.md).
+
+## Roadmap
+
+See [TODO.md](TODO.md) for the active development plan and refactoring status.

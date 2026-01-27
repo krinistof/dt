@@ -1,69 +1,110 @@
-# Sequence of events between server and client
+# UniQue (uq) Architecture
+
+The project is structured as a monorepo containing the core protocol libraries and the Democratic Tier application. The architecture separates the core synchronization logic (`uq`) from the specific application implementation.
+
+## Components
+
+### 1. Core Library (`crates/uq`)
+-   **Role**: Core Rust library handling logic, storage, and cryptography.
+-   **Functionality**: Implements the `Sync` protocol for agnostic event synchronization.
+-   **Identity**: Manages identity and verification.
+
+### 2. Server (`crates/uq-server`)
+-   **Role**: Standalone server binary.
+-   **Stack**: ConnectRPC / Axum.
+-   **Features**:
+    -   Exposes `SyncService` for clients to fetch/push events.
+    -   Integrates `collect_log` for generic client telemetry.
+    -   Configurable SQLite storage.
+
+### 3. Client Library (`packages/uq-client`)
+-   **Role**: TypeScript client library.
+-   **Functionality**:
+    -   ConnectRPC client generation.
+    -   Cryptography (Key generation, Signing).
+    -   State management helper ("Reducer" pattern).
+    -   Built-in error reporting.
+
+## Protocol & Cryptography
+
+The protocol uses **Asymmetric Topics**, meaning all topic members have access to the shared asymmetric key, which they use to encrypt events.
+
+### Data Model
+Events are cryptographically bound to a Topic.
+
+-   **Topic**: Identified by a unique Public Key (`topic_pk`).
+-   **Event Structure**:
+    -   `topic_pk`: The identifier of the topic.
+    -   `blob`: The opaque data payload (handled by upper layers).
+    -   `sig`: Signature verifying the event.
+
+### Verification
+To ensure integrity and prevent replay attacks across topics, the signature verification enforces:
+
+`Verify(user_pk, signature, hash(blob) + topic_pk)`
+
+## Sequence of Events
+
+### Client-Server Sync
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant Client
-    box rgba(31, 161, 250, .5) Democratic Tier
-        participant Server
-        participant Database@{type: "database"}
-    end
+    participant Server
+    participant Database
 
-    Note over Client: User scans QR.<br/>Loads GroupKey & UserKey.<br/>Derives UserPubKey.
+    Note over Client: User loads Topic (`topic_pk`)
 
     loop Sync
-        Client->>+Server: Get events since `last_timestamp`
-        Server<<->>Database: Select * from events > timestamp
+        Client->>+Server: Get events for `topic_pk` since `last_timestamp`
+        Server<<->>Database: Select * from events where topic_pk = ? AND timestamp > ?
         Server-->>-Client: Returns `SignedEvents[]`
         
-        Note over Client: Client iterates events:<br/>1. Check signature in whitelist<br/>2. Decrypt with GroupKey<br/>3. Update UI
+        Note over Client: Client iterates events:<br/>1. Verify Signature (hash(blob) + topic_pk)<br/>2. Parse blob (decrypt if needed)<br/>3. Update UI via Reducer
     end
-
-    Note left of Client: User posts "Hello"
-    
-    Note over Client: 1. Create JSON: {type: "post", txt: "Hello"}<br/>2. Encrypt with GroupKey -> `CipherBytes`<br/>3. Sign `CipherBytes` with UserPrivKey
-    
-    Client->>+Server: Push EventRequest:<br/>(UserPubKey, Signature, CipherBytes)
-    
-    Note right of Server: 1. Check if UserPubKey in Whitelist<br/>2. Verify Signature matches CipherBytes<br/>3. DO NOT DECRYPT
-    
-    alt Verification Failed
-        Server-->>Client: 403 Go Away
-    else Verified
-        Server->>Database: INSERT INTO events (pubkey, sig, blob, timestamp)
-        Server-->>-Client: 200 OK (EventID)
-    end
-    
-    Note left of Client: User votes
-    
-    Note over Client: 1. Create JSON:<br/>{type: "vote", ref: signature, val: 1234}<br/>2. Encrypt with GroupKey -> `CipherBytes`<br/>3. Sign `CipherBytes` with UserPrivKey
-    
-    Client->>Server: Push EventRequest:<br/>(UserPubKey, Sig, CipherBytes)
-    Note right of Server: Server has NO IDEA this is a vote.<br/>It just sees another valid blob.
-    Server->>Database: if valid insert...
 ```
 
-# From events to rendering
+### Event Publication
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client
+    participant Server
+    participant Database
+
+    Note left of Client: User creates content (Post/Vote)
+    
+    Note over Client: 1. Create Payload (blob)<br/>2. Sign(UserPrivKey, hash(blob) + topic_pk)
+    
+    Client->>+Server: Push EventRequest:<br/>(topic_pk, user_pk, signature, blob)
+    
+    Note right of Server: 1. Verify Signature matches blob + topic_pk<br/>2. DO NOT inspect blob content
+    
+    alt Verification Failed
+        Server-->>Client: 403 Forbidden
+    else Verified
+        Server->>Database: INSERT INTO events (topic_pk, pubkey, sig, blob, timestamp)
+        Server-->>-Client: 200 OK (EventID)
+    end
+```
+
+### Data Flow (Reducer Pattern)
 
 ```mermaid
 graph LR
-    subgraph "Group Events (Decrypted)"
-        E1("{Type: Post, ID: A, Author: Bob,...}")
-        E2("{Type: Vote, Ref: A, Val: 1, Author: Alice}")
-        E3("{Type: Vote, Ref: A, Val: 1, Author: Bob}")
-        E4("{Type: Vote, Ref: A, Val: 2, Author: Alice}")
+    subgraph "Topic Events"
+        E1("{TopicPK: T1, Type: Post...}")
+        E2("{TopicPK: T1, Type: Vote...}")
     end
 
-    subgraph "Aggregator"
-        Reducer[Reducer Function<br/>'Map&lt;ContentHash, State&gt;']
-    end
-
-    subgraph "Derived UI"
+    subgraph "Client App"
+        Reducer[Reducer Function]
         Store[Local State Store]
-        S1("Post A State:<br/>- Content: '...'<br/>- Votes: {Alice: 2, Bob: 1}<br/>- Score: 3")
     end
 
-
-    E1 & E2 & E3 & E4 --> Reducer
+    E1 & E2 --> Reducer
     Reducer --> Store
+    Store --> UI
 ```
