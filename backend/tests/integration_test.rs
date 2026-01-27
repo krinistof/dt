@@ -70,22 +70,22 @@ mod tests {
 
         println!("Verifying UqService API...");
         let client = reqwest::blocking::Client::new();
-        // Test Pull (Empty state)
+        // Test Sync (Empty state)
         let res = client
-            .post("http://localhost:8080/uq.v1.UqService/Pull")
+            .post("http://localhost:8080/uq.v1.UqService/Sync")
             .header("Content-Type", "application/json")
             .body(r#"{ "sinceTimestampMs": "0" }"#)
             .send()
-            .expect("Failed to call Pull");
+            .expect("Failed to call Sync");
 
         assert!(
             res.status().is_success(),
-            "Pull request failed: {:?}",
+            "Sync request failed: {:?}",
             res.status()
         );
         let body = res.text().expect("Failed to read body");
-        println!("Pull Response: {}", body);
-        // Expect empty events list or similar
+        println!("Sync Response: {}", body);
+        // Expect response with timestamp
         assert!(
             body.contains("serverTimestampMs"),
             "Response missing serverTimestampMs"

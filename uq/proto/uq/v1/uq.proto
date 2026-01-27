@@ -4,7 +4,7 @@ package uq.v1;
 
 // A generic event in the system.
 message Event {
-  // The topic identifier (Ed25519 Public Key of the topic owner/group).
+  // The topic identifier (Ed25519 Public Key).
   // 32 bytes.
   bytes topic_pk = 1;
 
@@ -23,46 +23,30 @@ message Event {
   int64 server_timestamp_ms = 5;
 }
 
-message PushRequest {
+// Combined request for single connection push and pull functionality.
+message SyncRequest {
+  // List of events happened since last push. Can be empty.
   repeated Event events = 1;
+
+  // User identifier to check topic whitelists for updates.
+  bytes user_pk = 2;
+
+  // Request events with server_timestamp > since_timestamp
+  int64 since_timestamp_ms = 3;
 }
 
-message PushResponse {
-  // Number of events successfully accepted.
-  int32 accepted_count = 1;
-}
-
-message PullRequest {
-  // Filter by topic (optional? or required? for now optional = all public streams? No, let's require topic for efficiency usually, but maybe 'since' is enough for a global firehose if supported).
-  // For now, let's keep it simple: sync everything since timestamp (good for small apps) or filter.
-  // The user wants "simple multiplayer games", so probably topic-based.
-  // But for the MVP, "Sync since X" is simplest.
-  
-  // Return events with server_timestamp > since_timestamp
-  int64 since_timestamp_ms = 1;
-  
-  // Optional: Filter by specific topics. If empty, syncs all (or server policy decides).
-  repeated bytes filter_topics = 2;
-}
-
-message PullResponse {
+// Response for efficient delta fetching.
+message SyncResponse {
+  // Events happened since requested timestamp
   repeated Event events = 1;
+
+  // Current server timestamp (Unix epoch milliseconds)
   int64 server_timestamp_ms = 2;
 }
 
+// UniQue service for efficient and secure broadcasting.
 service UqService {
-  // Push new events to the server.
-  rpc Push(PushRequest) returns (PushResponse);
-  
-  // Pull events from the server.
-  rpc Pull(PullRequest) returns (PullResponse);
-
-  // Submit a log message (telemetry).
-  rpc Log(LogRequest) returns (LogResponse);
+  // Sync events with the server. Push and pull functionality combined.
+  rpc Sync(SyncRequest) returns (SyncResponse);
 }
 
-message LogRequest {
-  string message = 1;
-}
-
-message LogResponse {}

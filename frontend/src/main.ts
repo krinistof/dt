@@ -1,12 +1,12 @@
 import { 
   createUqClient, 
   generateKeyPair, 
-  pushEvent, 
-  pullEvents, 
+  sync, 
   type KeyPair,
   type Event
 } from "uq-client";
 import * as ed from "@noble/ed25519";
+import { sha256 } from "@noble/hashes/sha2.js";
 
 const client = createUqClient("/");
 let identity: KeyPair;
@@ -37,20 +37,37 @@ async function initIdentity() {
   document.getElementById("user-pk")!.innerText = toHex(identity.publicKey);
 }
 
-function setTopic(hex: string) {
+function setTopic(input: string) {
   try {
-    if (!hex) {
+    if (!input) {
       // Default topic: all zeros (public channel?) or hash of "default"
       // Let's use 32 bytes of zeros for "global"
       currentTopic = new Uint8Array(32);
     } else {
-      currentTopic = fromHex(hex);
+      currentTopic = sha256(enc.encode(input));
     }
     console.log("Topic set:", toHex(currentTopic));
     refreshFeed();
   } catch (e) {
-    alert("Invalid hex topic");
+    alert("Error setting topic");
   }
+}
+
+function renderEvents(events: Event[]) {
+  const feed = document.getElementById("feed")!;
+  const filtered = events.filter(e => {
+      // Compare topicPk
+      if (e.topicPk.length !== currentTopic.length) return false;
+      for(let i=0; i<e.topicPk.length; i++) if (e.topicPk[i] !== currentTopic[i]) return false;
+      return true;
+  });
+
+  feed.innerHTML = filtered.map(e => `
+    <div style="margin-bottom: 5px; padding: 5px; border-bottom: 1px solid #eee;">
+      <small style="color: #666;">${toHex(e.authorPk).slice(0, 8)}...</small>: 
+      <span>${dec.decode(e.payload)}</span>
+    </div>
+  `).join("");
 }
 
 async function sendMessage() {
@@ -60,9 +77,9 @@ async function sendMessage() {
 
   const payload = enc.encode(msg);
   try {
-    await pushEvent(client, identity, currentTopic, payload);
+    const response = await sync(client, 0n /* TODO Pull since 1970 for now */, { author: identity, topicPk: currentTopic, payload });
     input.value = "";
-    refreshFeed();
+    renderEvents(response.events);
   } catch (e) {
     console.error(e);
     alert("Send failed");
@@ -70,30 +87,9 @@ async function sendMessage() {
 }
 
 async function refreshFeed() {
-  const feed = document.getElementById("feed")!;
   try {
-    const events = await pullEvents(client, 0n); // Pull all for now
-    
-    // Sort and render
-    // We only filter client-side for now as server API handles global pull or strict filter
-    // If strict filter is not implemented in server properly, we filter here.
-    // My server impl: `get_events_since` returns EVERYTHING > timestamp.
-    // So we filter here.
-    
-    const filtered = events.filter(e => {
-        // Compare topicPk
-        if (e.topicPk.length !== currentTopic.length) return false;
-        for(let i=0; i<e.topicPk.length; i++) if (e.topicPk[i] !== currentTopic[i]) return false;
-        return true;
-    });
-
-    feed.innerHTML = filtered.map(e => `
-      <div style="margin-bottom: 5px; padding: 5px; border-bottom: 1px solid #eee;">
-        <small style="color: #666;">${toHex(e.authorPk).slice(0, 8)}...</small>: 
-        <span>${dec.decode(e.payload)}</span>
-      </div>
-    `).join("");
-    
+    const response = await sync(client, 0n); // TODO Pull since 1970 for now
+    renderEvents(response.events);
   } catch (e) {
     console.error(e);
   }

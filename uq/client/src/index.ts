@@ -1,7 +1,7 @@
 import { createClient, type PromiseClient } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
 import { UqService } from "./gen/uq/v1/uq_connect.js";
-import { Event, PullRequest, PushRequest } from "./gen/uq/v1/uq_pb.js";
+import { Event, SyncRequest, SyncResponse } from "./gen/uq/v1/uq_pb.js";
 import * as ed from "@noble/ed25519";
 import { sha512 } from "@noble/hashes/sha512";
 import { sha256 } from "@noble/hashes/sha256";
@@ -29,48 +29,38 @@ export function createUqClient(baseUrl: string): UqClient {
   return createClient(UqService, transport);
 }
 
-export async function pushEvent(
-  client: UqClient,
-  author: KeyPair,
-  topicPk: Uint8Array,
-  payload: Uint8Array
-): Promise<void> {
-  // Construct signature
-  // msg = sha256(payload) + topicPk
-  const payloadHash = sha256(payload);
-  const msg = new Uint8Array(payloadHash.length + topicPk.length);
-  msg.set(payloadHash);
-  msg.set(topicPk, payloadHash.length);
-
-  const signature = await ed.signAsync(msg, author.privateKey);
-
-  const event = new Event({
-    topicPk: topicPk as any,
-    authorPk: author.publicKey as any,
-    signature: signature as any,
-    payload: payload as any,
-    // serverTimestampMs is set by server
-  });
-
-  const request = new PushRequest({
-    events: [event],
-  });
-
-  await client.push(request);
-}
-
-export async function pullEvents(
+export async function sync(
   client: UqClient,
   sinceMs: bigint,
-  filterTopics: Uint8Array[] = []
-): Promise<Event[]> {
-  const request = new PullRequest({
+  push?: SyncRequest
+): Promise<SyncResponse> {
+  const events: Event[] = [];
+  if (push) {
+    // Construct signature
+    // msg = sha256(payload) + topicPk
+    const payloadHash = sha256(push.payload);
+    const msg = new Uint8Array(payloadHash.length + push.topicPk.length);
+    msg.set(payloadHash);
+    msg.set(push.topicPk, payloadHash.length);
+
+    const signature = await ed.signAsync(msg, push.author.privateKey);
+
+    const event = new Event({
+      topicPk: push.topicPk as any,
+      authorPk: push.author.publicKey as any,
+      signature: signature as any,
+      payload: push.payload as any,
+      // serverTimestampMs is set by server
+    });
+    events.push(event);
+  }
+
+  const request = new SyncRequest({
+    events,
     sinceTimestampMs: sinceMs,
-    filterTopics,
   });
-  
-  const response = await client.pull(request);
-  return response.events;
+
+  return client.sync(request);
 }
 
 // Re-export proto types

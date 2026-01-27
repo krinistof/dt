@@ -7,7 +7,7 @@ pub mod uq_proto {
 
 use axum::Router;
 use api::UqServiceHandler;
-use uq_proto::uqservice; // Generated module name usually matches service name snake_case
+use uq_proto::uqservice;
 
 pub struct UqServer {
     db: db::Db,
@@ -21,22 +21,11 @@ impl UqServer {
 
     pub fn into_router(self) -> Router {
         let handler = UqServiceHandler::new(self.db);
-        let handler_push = handler.clone();
-        let handler_pull = handler.clone();
-        let handler_log = handler;
 
         uqservice::UqServiceBuilder::new()
-            .push(move |req| {
-                let h = handler_push.clone();
-                async move { h.push(req).await }
-            })
-            .pull(move |req| {
-                let h = handler_pull.clone();
-                async move { h.pull(req).await }
-            })
-            .log(move |req| {
-                let h = handler_log.clone();
-                async move { h.log(req).await }
+            .sync(move |req| {
+                let h = handler.clone();
+                async move { h.sync(req).await }
             })
             .build_connect()
     }

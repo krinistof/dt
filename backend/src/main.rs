@@ -16,6 +16,7 @@ async fn main() -> Result<()> {
     info!("listening on {}", addr);
 
     // Initialize UqServer with local SQLite
+    // TODO ensure db dir exists.
     let db_url = std::env::var("DATABASE_URL").unwrap_or("sqlite://db/dt.db?mode=rwc".into());
     let uq_server = UqServer::new(&db_url).await?;
     
