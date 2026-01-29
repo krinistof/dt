@@ -12,78 +12,71 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-      - uses: bufbuild/buf-setup-action@v1
+      - uses: cachix/install-nix-action@v27
         with:
-          version: "1.54.0"
-      - uses: bufbuild/buf-lint-action@v1
-        with:
-          input: 'proto'
-      - name: Check Formatting
-        run: buf format --diff --exit-code
+          nix_path: nixpkgs=channel:nixos-unstable
+      - name: Lint and Format
+        run: nix develop --command bash -c "buf lint proto && buf format --diff --exit-code"
 
   frontend:
     name: Frontend CI
     if: github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'docs')
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: cachix/install-nix-action@v27
         with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-      - uses: bufbuild/buf-setup-action@v1
+          nix_path: nixpkgs=channel:nixos-unstable
+      - uses: actions/cache@v4
         with:
-          version: "1.54.0"
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Install Dependencies
-        run: npm ci
+        run: nix develop --command bash -c "cd frontend && npm ci"
       - name: Generate Proto
-        run: npm run generate
+        run: nix develop --command bash -c "cd frontend && npm run generate"
       - name: Lint
-        run: npm run lint
+        run: nix develop --command bash -c "cd frontend && npm run lint"
       - name: Test
-        run: npm test
+        run: nix develop --command bash -c "cd frontend && npm test"
       - name: Build
-        run: npm run build
+        run: nix develop --command bash -c "cd frontend && npm run build"
 
   backend:
     name: Backend CI
     if: github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'docs')
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./backend
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: cachix/install-nix-action@v27
         with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-      - uses: bufbuild/buf-setup-action@v1
+          nix_path: nixpkgs=channel:nixos-unstable
+      
+      - uses: actions/cache@v4
         with:
-          version: "1.54.0"
-      - name: Install Frontend Deps
-        run: |
-          cd ../frontend
-          npm ci
-          npm run generate
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: arduino/setup-protoc@v3
-      - name: Rust Cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: backend
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            backend/target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Install Frontend Deps & Generate
+        run: nix develop --command bash -c "cd frontend && npm ci && npm run generate"
+      
       - name: Check Formatting
-        run: cargo fmt --all -- --check
+        run: nix develop --command bash -c "cd backend && cargo fmt --all -- --check"
         continue-on-error: true
+      
       - name: Lint
-        run: cargo clippy -- -D warnings
+        run: nix develop --command bash -c "cd backend && cargo clippy -- -D warnings"
         continue-on-error: true
+        
       - name: Build
-        run: cargo build --verbose
+        run: nix develop --command bash -c "cd backend && cargo build"
+        
       - name: Test
-        run: cargo test --verbose
+        run: nix develop --command bash -c "cd backend && cargo test"

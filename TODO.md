@@ -1,2 +1,4 @@
-# Plan: Integrate telemetry logging into new topic
+# Plan:
+[x] Update CI to use the nix flake.
+[ ] Integrate telemetry debug logging encrypted with server's public key.
 
