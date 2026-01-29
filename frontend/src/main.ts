@@ -19,6 +19,9 @@ const enc = new TextEncoder();
 const dec = new TextDecoder();
 
 // State
+let lastSyncTimestamp = 0n;
+let allEvents: Event[] = [];
+
 async function initIdentity() {
 	const stored = localStorage.getItem("uq-identity");
 	if (stored) {
@@ -50,6 +53,7 @@ function setTopic(input: string) {
 			currentTopic = sha256(enc.encode(input));
 		}
 		console.log("Topic set:", toHex(currentTopic));
+		renderEvents(allEvents);
 		refreshFeed();
 	} catch (e) {
 		alert("Error setting topic");
@@ -85,13 +89,17 @@ async function sendMessage() {
 
 	const payload = enc.encode(msg);
 	try {
-		const response = await sync(client, 0n /* TODO Pull since 1970 for now */, {
+		const response = await sync(client, lastSyncTimestamp, {
 			author: identity,
 			topicPk: currentTopic,
 			payload,
 		});
 		input.value = "";
-		renderEvents(response.events);
+		if (response.events.length > 0) {
+			allEvents = allEvents.concat(response.events);
+			renderEvents(allEvents);
+		}
+		lastSyncTimestamp = response.serverTimestampMs;
 	} catch (e) {
 		console.error(e);
 		alert("Send failed");
@@ -100,8 +108,12 @@ async function sendMessage() {
 
 async function refreshFeed() {
 	try {
-		const response = await sync(client, 0n); // TODO Pull since 1970 for now
-		renderEvents(response.events);
+		const response = await sync(client, lastSyncTimestamp);
+		if (response.events.length > 0) {
+			allEvents = allEvents.concat(response.events);
+			renderEvents(allEvents);
+		}
+		lastSyncTimestamp = response.serverTimestampMs;
 	} catch (e) {
 		console.error(e);
 	}

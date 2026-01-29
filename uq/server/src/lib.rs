@@ -1,12 +1,12 @@
-pub mod db;
 pub mod api;
+pub mod db;
 
 pub mod uq_proto {
     include!(concat!(env!("OUT_DIR"), "/uq.v1.rs"));
 }
 
-use axum::Router;
 use api::UqServiceHandler;
+use axum::Router;
 use uq_proto::uqservice;
 
 pub struct UqServer {

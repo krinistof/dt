@@ -1,6 +1,6 @@
+use crate::uq_proto::Event;
 use anyhow::Result;
 use sqlx::SqlitePool;
-use crate::uq_proto::Event;
 
 pub type Db = SqlitePool;
 
@@ -27,7 +27,7 @@ pub async fn insert_event(db: &Db, event: &Event) -> Result<()> {
 
 pub async fn get_events_since(db: &Db, since_ms: i64) -> Result<Vec<Event>> {
     let events = sqlx::query_as::<_, Event>(
-        "SELECT * FROM events WHERE server_timestamp_ms > ? ORDER BY server_timestamp_ms ASC"
+        "SELECT * FROM events WHERE server_timestamp_ms > ? ORDER BY server_timestamp_ms ASC",
     )
     .bind(since_ms)
     .fetch_all(db)

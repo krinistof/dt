@@ -1,10 +1,10 @@
-use connectrpc_axum::{ConnectError, ConnectRequest, ConnectResponse};
-use ed25519_dalek::{Verifier, VerifyingKey, Signature};
-use sha2::{Sha256, Digest};
 use crate::{
     db::{self, Db},
-    uq_proto::{SyncRequest, SyncResponse, Event},
+    uq_proto::{Event, SyncRequest, SyncResponse},
 };
+use connectrpc_axum::{ConnectError, ConnectRequest, ConnectResponse};
+use ed25519_dalek::{Signature, Verifier, VerifyingKey};
+use sha2::{Digest, Sha256};
 
 #[derive(Clone)]
 pub struct UqServiceHandler {
@@ -22,7 +22,7 @@ impl UqServiceHandler {
     ) -> Result<ConnectResponse<SyncResponse>, ConnectError> {
         let events = req.0.events;
         let since = req.0.since_timestamp_ms;
-        
+
         // 1. Process pushed events
         for mut event in events {
             if !self.verify_signature(&event) {
@@ -40,12 +40,10 @@ impl UqServiceHandler {
         }
 
         // 2. Fetch new events
-        let events = db::get_events_since(&self.db, since)
-            .await
-            .map_err(|e| {
-                tracing::error!("DB Error: {}", e);
-                ConnectError::new_internal("Database error")
-            })?;
+        let events = db::get_events_since(&self.db, since).await.map_err(|e| {
+            tracing::error!("DB Error: {}", e);
+            ConnectError::new_internal("Database error")
+        })?;
 
         let server_timestamp_ms = chrono::Utc::now().timestamp_millis();
 
@@ -60,17 +58,18 @@ impl UqServiceHandler {
             return false;
         }
 
-        let Ok(vk) = VerifyingKey::from_bytes(event.author_pk.as_slice().try_into().unwrap()) else {
+        let Ok(vk) = VerifyingKey::from_bytes(event.author_pk.as_slice().try_into().unwrap())
+        else {
             return false;
         };
-        
+
         let sig = Signature::from_bytes(event.signature.as_slice().try_into().unwrap());
 
         // Construct message: sha256(payload) + topic_pk
         let mut hasher = Sha256::new();
         hasher.update(&event.payload);
         let payload_hash = hasher.finalize();
-        
+
         let mut msg = Vec::with_capacity(32 + event.topic_pk.len());
         msg.extend_from_slice(&payload_hash);
         msg.extend_from_slice(&event.topic_pk);
