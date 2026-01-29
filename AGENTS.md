@@ -9,9 +9,9 @@ This repository contains a full-stack application with a Rust backend (Axum) and
 ## Project Structure
 - `backend/`: Rust server application.
 - `frontend/`: TypeScript frontend application (Vanilla + ConnectRPC).
-- `proto/`: Protocol Buffer definitions.
-- `buf.yaml`: Buf configuration for Protobuf.
-- `shell.nix`: Nix environment definition.
+- `uq/proto/`: Protocol Buffer definitions.
+- `uq/proto/buf.yaml`: Buf configuration for Protobuf.
+- `flake.nix`: Nix environment definition.
 
 ## Development Environment (Nix)
 Ensure you are running inside the Nix shell. The environment provides:
@@ -50,9 +50,9 @@ Run these commands from the `frontend/` directory or use `workdir="frontend/"`.
 
 - **Install**: `npm install`
 - **Build**: `npm run build` (uses `esbuild`, outputs to `dist/`)
-- **Generate Proto Clients**: `npm run generate` (uses `buf generate`)
-- **Lint/Format**: `npx @biomejs/biome check --apply .` (configured in `biome.json`)
-- **Test**: *Note: No `test` script is currently defined in `package.json`, although `backend/tests/integration_test.rs` attempts to call it.*
+- **Generate Proto Clients**: `npm run generate` in `uq/client`
+- **Lint/Format**: `npm run lint` (uses `biome check --write .`)
+- **Test**: `npm test`
 
 ### Code Style & Conventions
 - **Framework**: Vanilla TypeScript (no React/Vue/Angular).
@@ -62,11 +62,11 @@ Run these commands from the `frontend/` directory or use `workdir="frontend/"`.
 - **DOM**: Direct DOM manipulation (e.g., `document.getElementById`).
 
 ## Protocol Buffers
-- Definitions are in `proto/`.
+- Definitions are in `uq/proto/`.
 - `buf` is used for code generation.
 - To update protos:
-  1. Modify files in `proto/`.
-  2. Run `buf generate` (or `npm run generate` in frontend).
+  1. Modify files in `uq/proto/`.
+  2. Run `npm run generate` in `uq/client`.
   3. Rebuild backend (build script handles proto compilation).
 
 ## Testing Strategy

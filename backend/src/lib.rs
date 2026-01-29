@@ -1,6 +1,6 @@
 #![warn(missing_docs)]
 //! Library for implementing the backend functions for the Democratic Tier service.
-use axum::{routing::any_service, Router};
+use axum::{Router, routing::any_service};
 use tower_http::services::ServeDir;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};

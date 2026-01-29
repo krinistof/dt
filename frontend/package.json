@@ -1,20 +1,22 @@
 {
-  "name": "dt_frontend",
-  "version": "9.0.0",
-  "description": "frontend for democratic tier",
-  "author": "Ifa <kristof@mntr.dev>",
-  "license": "MIT",
-  "type": "module",
-  "scripts": {
-    "build": "esbuild src/main.ts --bundle --outfile=dist/main.js --sourcemap --format=esm && cp index.html dist/",
-    "serve": "python -m http.server"
-  },
-  "dependencies": {
-    "@bufbuild/protobuf": "^2.2.3",
-    "@connectrpc/connect": "^2.0.1",
-    "@connectrpc/connect-web": "^2.0.1",
-    "@noble/ed25519": "^3.0.0",
-    "@noble/hashes": "^2.0.1",
-    "uq-client": "file:../uq/client"
-  }
+	"name": "dt_frontend",
+	"version": "9.0.0",
+	"description": "frontend for democratic tier",
+	"author": "Ifa <kristof@mntr.dev>",
+	"license": "MIT",
+	"type": "module",
+	"scripts": {
+		"build": "esbuild src/main.ts --bundle --outfile=dist/main.js --sourcemap --format=esm && cp index.html dist/",
+		"serve": "python -m http.server",
+		"lint": "biome check --write .",
+		"test": "echo \"No tests specified\" && exit 0"
+	},
+	"dependencies": {
+		"@bufbuild/protobuf": "^2.2.3",
+		"@connectrpc/connect": "^2.0.1",
+		"@connectrpc/connect-web": "^2.0.1",
+		"@noble/ed25519": "^3.0.0",
+		"@noble/hashes": "^2.0.1",
+		"uq-client": "file:../uq/client"
+	}
 }

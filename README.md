@@ -35,11 +35,11 @@ This repository is being refactored into a **Monorepo** hosting both the core pr
 
 ## Project Structure
 
--   **`crates/uq`**: Core Rust library for the **UniQue** protocol (Logic, Storage, Crypto).
--   **`crates/uq-server`**: Standalone backend server (ConnectRPC + Axum).
--   **`packages/uq-client`**: TypeScript client library.
--   **`apps/dt-frontend`**: The Democratic Tier frontend application.
--   **`proto/uq`**: Protocol Buffer definitions.
+-   **`uq/server`**: Core Rust library and server for the **UniQue** protocol (Logic, Storage, Crypto).
+-   **`uq/client`**: TypeScript client library.
+-   **`backend`**: The Democratic Tier backend application.
+-   **`frontend`**: The Democratic Tier frontend application.
+-   **`uq/proto`**: Protocol Buffer definitions.
 
 ## The UniQue Protocol
 

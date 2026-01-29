@@ -32,6 +32,7 @@
             nodejs_22
             typescript
             esbuild
+            biome
             
             # Proto
             buf

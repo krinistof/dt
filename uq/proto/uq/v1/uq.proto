@@ -49,4 +49,3 @@ service UqService {
   // Sync events with the server. Push and pull functionality combined.
   rpc Sync(SyncRequest) returns (SyncResponse);
 }
-

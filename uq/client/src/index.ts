@@ -29,10 +29,16 @@ export function createUqClient(baseUrl: string): UqClient {
   return createClient(UqService, transport);
 }
 
+export interface PushEventParams {
+  topicPk: Uint8Array;
+  author: KeyPair;
+  payload: Uint8Array;
+}
+
 export async function sync(
   client: UqClient,
   sinceMs: bigint,
-  push?: SyncRequest
+  push?: PushEventParams
 ): Promise<SyncResponse> {
   const events: Event[] = [];
   if (push) {
@@ -46,10 +52,10 @@ export async function sync(
     const signature = await ed.signAsync(msg, push.author.privateKey);
 
     const event = new Event({
-      topicPk: push.topicPk as any,
-      authorPk: push.author.publicKey as any,
-      signature: signature as any,
-      payload: push.payload as any,
+      topicPk: push.topicPk,
+      authorPk: push.author.publicKey,
+      signature: signature,
+      payload: push.payload,
       // serverTimestampMs is set by server
     });
     events.push(event);

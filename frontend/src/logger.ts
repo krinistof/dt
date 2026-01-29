@@ -1,5 +1,5 @@
 import { LogServiceClient } from "./grpc";
-import { addLog, getAllLogs, clearLogs } from "./idb";
+import { addLog, clearLogs, getAllLogs } from "./idb";
 import { handleSyncError } from "./sync";
 
 const RETRY_TIMEOUT_MS: number = 3000;

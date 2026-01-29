@@ -16,7 +16,7 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
       - name: Lint and Format
-        run: nix develop --command bash -c "buf lint proto && buf format --diff --exit-code"
+        run: nix develop --command bash -c "buf lint uq/proto && buf format uq/proto --diff --exit-code"
 
   frontend:
     name: Frontend CI
@@ -30,13 +30,13 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json', 'uq/client/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
       - name: Install Dependencies
         run: nix develop --command bash -c "cd frontend && npm ci"
-      - name: Generate Proto
-        run: nix develop --command bash -c "cd frontend && npm run generate"
+      - name: Generate UQ Client
+        run: nix develop --command bash -c "cd uq/client && npm ci && npm run generate && npm run build"
       - name: Lint
         run: nix develop --command bash -c "cd frontend && npm run lint"
       - name: Test
@@ -65,7 +65,7 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       
       - name: Install Frontend Deps & Generate
-        run: nix develop --command bash -c "cd frontend && npm ci && npm run generate"
+        run: nix develop --command bash -c "cd uq/client && npm ci && npm run generate && npm run build && cd ../../frontend && npm ci"
       
       - name: Check Formatting
         run: nix develop --command bash -c "cd backend && cargo fmt --all -- --check"

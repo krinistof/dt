@@ -4,12 +4,12 @@ The project is structured as a monorepo containing the core protocol libraries a
 
 ## Components
 
-### 1. Core Library (`crates/uq`)
+### 1. Core Library (`uq/server`)
 -   **Role**: Core Rust library handling logic, storage, and cryptography.
 -   **Functionality**: Implements the `Sync` protocol for agnostic event synchronization.
 -   **Identity**: Manages identity and verification.
 
-### 2. Server (`crates/uq-server`)
+### 2. Server (`backend`)
 -   **Role**: Standalone server binary.
 -   **Stack**: ConnectRPC / Axum.
 -   **Features**:
@@ -17,7 +17,7 @@ The project is structured as a monorepo containing the core protocol libraries a
     -   Integrates `collect_log` for generic client telemetry.
     -   Configurable SQLite storage.
 
-### 3. Client Library (`packages/uq-client`)
+### 3. Client Library (`uq/client`)
 -   **Role**: TypeScript client library.
 -   **Functionality**:
     -   ConnectRPC client generation.
