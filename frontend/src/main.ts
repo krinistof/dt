@@ -40,7 +40,10 @@ async function initIdentity() {
 			}),
 		);
 	}
-	document.getElementById("user-pk")!.innerText = toHex(identity.publicKey);
+	const el = document.getElementById("user-pk");
+	if (el) {
+		el.innerText = toHex(identity.publicKey);
+	}
 }
 
 function setTopic(input: string) {
@@ -55,13 +58,14 @@ function setTopic(input: string) {
 		console.log("Topic set:", toHex(currentTopic));
 		renderEvents(allEvents);
 		refreshFeed();
-	} catch (e) {
+	} catch (_e) {
 		alert("Error setting topic");
 	}
 }
 
 function renderEvents(events: Event[]) {
-	const feed = document.getElementById("feed")!;
+	const feed = document.getElementById("feed");
+	if (!feed) return;
 	const filtered = events.filter((e) => {
 		// Compare topicPk
 		if (e.topicPk.length !== currentTopic.length) return false;

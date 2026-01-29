@@ -2,7 +2,7 @@ import { LogServiceClient } from "./grpc";
 import { addLog, clearLogs, getAllLogs } from "./idb";
 import { handleSyncError } from "./sync";
 
-const RETRY_TIMEOUT_MS: number = 3000;
+const _RETRY_TIMEOUT_MS: number = 3000;
 let retryTimeoutId: number | null = null;
 
 /**
