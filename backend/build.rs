@@ -1,38 +1,37 @@
 use std::process::Command;
 
+fn run_npm(args: &[&str], dir: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let output = Command::new("npm").args(args).current_dir(dir).output()?;
+
+    if !output.status.success() {
+        panic!(
+            "npm {} failed in {}:\nstdout: {}\nstderr: {}",
+            args.join(" "),
+            dir,
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+    Ok(())
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Note: We no longer compile protos here, as they are in `uq`.
     // We just handle the frontend build trigger.
 
     if cfg!(feature = "build_frontend") {
-        let npm_install_output = Command::new("npm")
-            .arg("install")
-            .current_dir("../frontend")
-            .output()?;
+        // Build uq-client first
+        run_npm(&["install"], "../uq/client")?;
+        run_npm(&["run", "generate"], "../uq/client")?;
+        run_npm(&["run", "build"], "../uq/client")?;
 
-        if !npm_install_output.status.success() {
-            panic!(
-                "npm install failed:\nstdout: {}\nstderr: {}",
-                String::from_utf8_lossy(&npm_install_output.stdout),
-                String::from_utf8_lossy(&npm_install_output.stderr)
-            );
-        }
-
-        let output = Command::new("npm")
-            .arg("run")
-            .arg("build")
-            .current_dir("../frontend")
-            .output()?;
-
-        if !output.status.success() {
-            panic!(
-                "npm build failed:\nstdout: {}\nstderr: {}",
-                String::from_utf8_lossy(&output.stdout),
-                String::from_utf8_lossy(&output.stderr)
-            );
-        }
+        // Build frontend
+        run_npm(&["install"], "../frontend")?;
+        run_npm(&["run", "build"], "../frontend")?;
 
         println!("cargo:rerun-if-changed=../frontend");
+        println!("cargo:rerun-if-changed=../uq/client");
+        println!("cargo:rerun-if-changed=../uq/proto");
     }
 
     Ok(())

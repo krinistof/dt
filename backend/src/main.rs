@@ -13,8 +13,18 @@ async fn main() -> Result<()> {
     info!("listening on {}", addr);
 
     // Initialize UqServer with local SQLite
-    // TODO ensure db dir exists.
     let db_url = std::env::var("DATABASE_URL").unwrap_or("sqlite://db/dt.db?mode=rwc".into());
+
+    // Ensure db dir exists if using sqlite with a file path
+    if let Some(path_str) = db_url.strip_prefix("sqlite://") {
+        let path_str = path_str.split('?').next().unwrap_or(path_str);
+        let path = std::path::Path::new(path_str);
+        if let Some(parent) = path.parent() {
+            if !parent.as_os_str().is_empty() {
+                std::fs::create_dir_all(parent)?;
+            }
+        }
+    }
     let uq_server = UqServer::new(&db_url).await?;
 
     let app = static_files_service().merge(uq_server.into_router());
