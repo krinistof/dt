@@ -19,10 +19,10 @@ async fn main() -> Result<()> {
     if let Some(path_str) = db_url.strip_prefix("sqlite://") {
         let path_str = path_str.split('?').next().unwrap_or(path_str);
         let path = std::path::Path::new(path_str);
-        if let Some(parent) = path.parent() {
-            if !parent.as_os_str().is_empty() {
-                std::fs::create_dir_all(parent)?;
-            }
+        if let Some(parent) = path.parent()
+            && !parent.as_os_str().is_empty()
+        {
+            std::fs::create_dir_all(parent)?;
         }
     }
     let uq_server = UqServer::new(&db_url).await?;

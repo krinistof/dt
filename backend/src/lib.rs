@@ -20,7 +20,8 @@ pub fn init_logging() -> WorkerGuard {
 
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(
-            std::env::var("RUST_LOG").unwrap_or("dt=debug,tower_http=debug".into()),
+            std::env::var("RUST_LOG")
+                .unwrap_or("dt=debug,tower_http=debug,uq=debug,client_logs=info".into()),
         ))
         .with(
             // for the log file to be processed later

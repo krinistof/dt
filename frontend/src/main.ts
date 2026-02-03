@@ -1,15 +1,9 @@
+import "./logger.js";
 import * as ed from "@noble/ed25519";
 import { sha256 } from "@noble/hashes/sha2.js";
-import {
-	createUqClient,
-	type Event,
-	generateKeyPair,
-	type KeyPair,
-	sync,
-} from "uq-client";
+import { type Event, generateKeyPair, type KeyPair, sync } from "uq-client";
+import { client, getIdentity, setIdentity } from "./state.js";
 
-const client = createUqClient("/");
-let identity: KeyPair;
 let currentTopic: Uint8Array;
 
 // Helpers
@@ -24,6 +18,7 @@ let allEvents: Event[] = [];
 
 async function initIdentity() {
 	const stored = localStorage.getItem("uq-identity");
+	let identity: KeyPair;
 	if (stored) {
 		const parsed = JSON.parse(stored);
 		identity = {
@@ -40,6 +35,7 @@ async function initIdentity() {
 			}),
 		);
 	}
+	setIdentity(identity);
 	const el = document.getElementById("user-pk");
 	if (el) {
 		el.innerText = toHex(identity.publicKey);
@@ -91,9 +87,15 @@ async function sendMessage() {
 	const msg = input.value;
 	if (!msg) return;
 
+	const identity = getIdentity();
+	if (!identity) {
+		alert("Identity not initialized");
+		return;
+	}
+
 	const payload = enc.encode(msg);
 	try {
-		const response = await sync(client, lastSyncTimestamp, {
+		const response = await sync(client, lastSyncTimestamp, identity.publicKey, {
 			author: identity,
 			topicPk: currentTopic,
 			payload,
@@ -112,7 +114,9 @@ async function sendMessage() {
 
 async function refreshFeed() {
 	try {
-		const response = await sync(client, lastSyncTimestamp);
+		const identity = getIdentity();
+		if (!identity) return;
+		const response = await sync(client, lastSyncTimestamp, identity.publicKey);
 		if (response.events.length > 0) {
 			allEvents = allEvents.concat(response.events);
 			renderEvents(allEvents);

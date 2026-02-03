@@ -12,61 +12,72 @@ ed.etc.sha512Sync = (...m) => sha512(ed.etc.concatBytes(...m));
 export type UqClient = PromiseClient<typeof UqService>;
 
 export interface KeyPair {
-  publicKey: Uint8Array;
-  privateKey: Uint8Array;
+	publicKey: Uint8Array;
+	privateKey: Uint8Array;
 }
 
 export async function generateKeyPair(): Promise<KeyPair> {
-  const privateKey = ed.utils.randomPrivateKey();
-  const publicKey = await ed.getPublicKeyAsync(privateKey);
-  return { publicKey, privateKey };
+	const privateKey = ed.utils.randomPrivateKey();
+	const publicKey = await ed.getPublicKeyAsync(privateKey);
+	return { publicKey, privateKey };
 }
 
 export function createUqClient(baseUrl: string): UqClient {
-  const transport = createConnectTransport({
-    baseUrl,
-  });
-  return createClient(UqService, transport);
+	const transport = createConnectTransport({
+		baseUrl,
+	});
+	return createClient(UqService, transport);
+}
+
+export interface UnsignedEvent {
+	topicPk: Uint8Array;
+	payload: Uint8Array;
+}
+
+export async function signEvent(
+	unsignedEvent: UnsignedEvent,
+	author: KeyPair,
+): Promise<Event> {
+	const payloadHash = sha256(unsignedEvent.payload);
+	const msg = new Uint8Array(payloadHash.length + unsignedEvent.topicPk.length);
+	msg.set(payloadHash);
+	msg.set(unsignedEvent.topicPk, payloadHash.length);
+
+	const signature = await ed.signAsync(msg, author.privateKey);
+
+	return new Event({
+		topicPk: unsignedEvent.topicPk,
+		authorPk: author.publicKey,
+		signature: signature,
+		payload: unsignedEvent.payload,
+	});
 }
 
 export interface PushEventParams {
-  topicPk: Uint8Array;
-  author: KeyPair;
-  payload: Uint8Array;
+	topicPk: Uint8Array;
+	author: KeyPair;
+	payload: Uint8Array;
 }
 
 export async function sync(
-  client: UqClient,
-  sinceMs: bigint,
-  push?: PushEventParams
+	client: UqClient,
+	sinceMs: bigint,
+	userPk: Uint8Array,
+	push?: PushEventParams,
 ): Promise<SyncResponse> {
-  const events: Event[] = [];
-  if (push) {
-    // Construct signature
-    // msg = sha256(payload) + topicPk
-    const payloadHash = sha256(push.payload);
-    const msg = new Uint8Array(payloadHash.length + push.topicPk.length);
-    msg.set(payloadHash);
-    msg.set(push.topicPk, payloadHash.length);
+	const events: Event[] = [];
+	if (push) {
+		const event = await signEvent(push, push.author);
+		events.push(event);
+	}
 
-    const signature = await ed.signAsync(msg, push.author.privateKey);
+	const request = new SyncRequest({
+		events,
+		sinceTimestampMs: sinceMs,
+		userPk,
+	});
 
-    const event = new Event({
-      topicPk: push.topicPk,
-      authorPk: push.author.publicKey,
-      signature: signature,
-      payload: push.payload,
-      // serverTimestampMs is set by server
-    });
-    events.push(event);
-  }
-
-  const request = new SyncRequest({
-    events,
-    sinceTimestampMs: sinceMs,
-  });
-
-  return client.sync(request);
+	return client.sync(request);
 }
 
 // Re-export proto types

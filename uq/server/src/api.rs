@@ -2,8 +2,10 @@ use crate::{
     db::{self, Db},
     uq_proto::{Event, SyncRequest, SyncResponse},
 };
+use bs58;
 use connectrpc_axum::{ConnectError, ConnectRequest, ConnectResponse};
 use ed25519_dalek::{Signature, Verifier, VerifyingKey};
+use serde_json::Value;
 use sha2::{Digest, Sha256};
 
 #[derive(Clone)]
@@ -25,6 +27,22 @@ impl UqServiceHandler {
 
         // 1. Process pushed events
         for mut event in events {
+            if event.topic_pk == b"client_logs" {
+                let log_entry: Value = match serde_json::from_slice(&event.payload) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        tracing::warn!("Failed to parse debug log payload: {}", e);
+                        continue;
+                    }
+                };
+                tracing::info!(
+                    target: "client_logs",
+                    author = %bs58::encode(&event.author_pk).into_string(),
+                    log = %log_entry
+                );
+                continue;
+            }
+
             if !self.verify_signature(&event) {
                 tracing::warn!("Invalid signature for event");
                 continue;

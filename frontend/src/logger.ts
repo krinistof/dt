@@ -1,9 +1,5 @@
-import { LogServiceClient } from "./grpc";
-import { addLog, clearLogs, getAllLogs } from "./idb";
-import { handleSyncError } from "./sync";
-
-const _RETRY_TIMEOUT_MS: number = 3000;
-let retryTimeoutId: number | null = null;
+import { sync } from "uq-client";
+import { client, getIdentity } from "./state.js";
 
 /**
  * Sends a log message to the backend log collector.
@@ -12,48 +8,28 @@ let retryTimeoutId: number | null = null;
  */
 async function logToServer(level: string, message: string) {
 	const log = { level, message, timestamp: new Date().toISOString() };
-	await addLog(log);
-	syncLogs();
+	sendLog(log);
 }
 
-async function syncLogs() {
-	if (!navigator.onLine) {
+const enc = new TextEncoder();
+
+async function sendLog(log: object) {
+	const identity = getIdentity();
+	if (!navigator.onLine || !identity) {
 		return;
 	}
-
-	const logsWithKeys = await getAllLogs();
-	if (logsWithKeys.length === 0) {
-		return;
-	}
-
-	console.log(`Attempting to sync ${logsWithKeys.length} logs.`);
-	const syncedLogKeys: IDBValidKey[] = [];
 
 	try {
-		for (const { key, log } of logsWithKeys) {
-			const response = await LogServiceClient.log({
-				message: `[${log.level}] ${log.message}`,
-			});
-			if (response.success) {
-				syncedLogKeys.push(key);
-			} else {
-				console.error("Log collector reported a failure for synced logs.");
-			}
-		}
+		const topicPk = enc.encode("client_logs");
+		const payload = enc.encode(JSON.stringify(log));
 
-		if (syncedLogKeys.length > 0) {
-			await clearLogs(syncedLogKeys);
-			console.log(
-				`Successfully synced and cleared ${syncedLogKeys.length} logs.`,
-			);
-		}
-
-		if (retryTimeoutId) {
-			clearTimeout(retryTimeoutId);
-			retryTimeoutId = null;
-		}
+		await sync(client, 9223372036854775807n, identity.publicKey, {
+			topicPk,
+			payload,
+			author: identity,
+		});
 	} catch (error) {
-		handleSyncError(error, syncLogs);
+		console.error("Failed to send log:", error);
 	}
 }
 
@@ -106,14 +82,4 @@ console.error = (...args: unknown[]) => {
 	}
 };
 
-// --- Network Status Handling ---
-
-window.addEventListener("online", () => {
-	syncLogs();
-});
-
-// --- Initial Sync ---
-
-// Attempt to sync logs when the application starts
-syncLogs();
 console.log("Global loggers and error handlers initialized.");
