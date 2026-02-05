@@ -1,46 +1,113 @@
-# Verifiable queue with white list
+# dt (Democratic Tier) - Development Plan
 
-## Architecture & Security
-- [ ] **URL Security:** Use URL fragments (`#key=...`) to pass private keys to frontend without transmitting them to the server.
-- [ ] **Trust Model:** First event in a topic (Event #0) defines the immutable whitelist of allowed authors.
-    - Payload format: `{"whitelist": ["<pubkey_b58>", ...]}`.
+## Overview
 
-## Shared Tests (`uq/test-data`)
-- [ ] **Test Vectors:** Generate JSONs containing:
-    - Valid Queue: Event #0 (Whitelist), Events #1..N (Valid signatures from allowed authors).
-    - Invalid Queue: Events signed by authors not in Event #0.
-    - Invalid Queue: Event #0 malformed or missing (for new topics).
+The architecture is layered to provide a generic, verifiable, and decentralized foundation (`uq`), upon which a democratic tier list is built (`dt`), and finally, a specialized music voting application (`sovo`) leverages these primitives.
 
-## Backend (`uq/server`)
-- [ ] **Validation Logic (Push):**
-    - **New Topics:** Reject the first event if its payload is not a valid whitelist configuration.
-    - **Existing Topics:** Reject event if the author is not in the topic's whitelist.
-- [ ] **Sync Logic (Pull):**
-    - Filter response: Only return events from topics where the requesting `user_pk` is in the whitelist.
-- [ ] **Tests:** Create `tests/queue_tests.rs` to validate `uq/test-data/` queue vectors.
+1.  **uq (universal queue):** The generic, decentralized core protocol. Handles **DAG-based event ordering**, **Hybrid Logical Clocks (HLC)**, and **cryptographic verification**. It treats payloads as opaque blobs (JSON/Protobuf) for privacy and flexibility.
+2.  **dt (democratic tier):** A verifiable, flat role system for anonimyzed democratic tier list collaboration. It defines **Whitelist** , **Identity** (URL-based), and **Snapshotting** (managing state size).
+3.  **sovo (song voter):** The specific application layer. It adds **Music Semantics** (Songs, Voting logic) and likely integrates with `ft` (later) for media.
 
-## Frontend (`dt`)
-- [ ] **Identity:**
-    - Remove local key generation.
-    - Implement `initIdentityFromHash()`: Parse `#s=<user_sk>`, derive public key, clear hash from URL.
-- [ ] **Cleanup:** Remove testing-only identity function (`setIdentity`) from public exports.
+**Key Architectural Shift:**
+*   **No Client-Side Database:** State is managed in-memory using small buffers of events between snapshots. Outdated events are pruned.
+*   **Opaque Payloads:** UQ doesn't know the content. Content is JSON (or Proto later) blobs, potentially encrypted.
 
-## UQ Client (`uq-client`)
-- [ ] **Refactor:**
-    - Remove `generateKeyPair` from public API (move to internal test utils).
-    - Add `verifyEvent` and `validateQueue` functions to `index.ts`.
-- [ ] **Tests:** Create `index.test.ts` to validate `uq/test-data/` queue vectors.
+---
 
-# Decentralization 
+## 1. UQ Tasks (Core Protocol & DAG)
+*The immutable, verifiable log of events.*
 
-## DAG & Sync
-- [ ] **Proto Definition:**
-    - Update `uq.proto` Event message:
-        - Add `repeated bytes parent_hashes = 6;` (DAG links).
-        - Replace existing timestamp with  `int64 logical_timestamp = 7;` (Hybrid Logical Clock).
-- [ ] **Backend (SQLite):**
-    - Update schema to store `parent_hashes` (likely as JSON or concatenated blob) and `logical_timestamp`.
-    - Create sync index: `CREATE INDEX idx_sync ON events (topic_pk, logical_timestamp);`.
-- [ ] **Sync Logic:**
-    - Implement HLC logic: `Event.timestamp = max(SystemTime, Parent.timestamp + 1)`.
-    - Update `SyncRequest` to handle "Graph Sync" (handling gaps/missing parents).
+### DAG & Event Structure
+- [ ] **Event Definition:**
+    - Structure: `Hash | Parents[] | Author_PK | Signature | HLC_Timestamp | Payload_Blob`.
+    - **DAG Validation:** Ensure `Parents[]` exist and are causally older (HLC check).
+- [ ] **Hybrid Logical Clock (HLC):**
+    - Implement `HLC` struct: `(wall_time, logical_counter)`.
+    - Rule: `Event.hlc = max(SystemTime, max(Parents.hlc) + 1)`.
+    - **Advantage:** deterministically orders events without central time authority, resolving concurrency.
+- [ ] **Graph Sync (The "Anti-Entropy" Protocol):**
+    - **Request:** "I have heads `[H1, H2]`. Give me what I miss."
+    - **Response:** "Here is the subgraph you are missing." (Topological sort).
+    - **Dependency Resolution:** If a client receives event `E` but misses parent `P`, it explicitly requests `P`.
+    - **Advantage:** Sync is efficient and self-healing; no "holes" in the state.
+
+---
+
+## 2. dt Tasks (Trust, State & Identity)
+*The governance layer. "Who is allowed to speak?"*
+
+### Trust & Identity
+- [ ] **Trust Anchor (Event #0):**
+    - The first event in a DAG (`Manifesto`) contains the `Whitelist`, and other metadata.
+    - **Validation:** Every new event must trace its ancestry back to Manifesto and prove its author is authorized.
+- [ ] **URL Identity:**
+    - `#key=<private_key>`: Key never touches backend.
+    - Identity derivation: `Pub = derive(Priv)`.
+- [ ] **Snapshotting & Pruning:**
+    - **State Construction:** `State_N = Apply(State_0, Events_0_to_N)`.
+    - **Snapshotting:** Periodically serialize `State_N` (e.g., "Current Whitelist + Active Topics").
+    - **Pruning:** Delete events older than Snapshot `N-1`.
+    - **Advantage:** Client only holds `Current Snapshot + Recent Delta Buffer`. No heavy DB needed.
+
+---
+
+## 3. SoVo Tasks (Application Layer)
+*The music voting logic built on uq.*
+
+### Domain Logic
+- [ ] **Vote Semantics:**
+    - Map dt "Posts" to "Songs".
+    - Use votes to determine current favourite for next song.
+    - **Conflict Resolution:** If DAG forks (concurrent votes), HLC + Deterministic Tie-Breaker decides final order.
+- [ ] **Queue Calculation:**
+    - `CalculateQueue(Snapshot, DeltaBuffer)` -> Ordered List of Songs.
+    - **Advantage:** UI is a pure function of the DAG state.
+
+---
+
+## Dependency Graph
+
+```mermaid
+graph TD
+    subgraph UQ ["1. uq (Universal Queue)"]
+        UQ_DAG["DAG Event (Hash, Parents, Sig, Payload)"]
+        UQ_HLC["Hybrid Logical Clock (HLC)"]
+        UQ_SYNC["Graph Sync (Anti-Entropy)"]
+    end
+
+    subgraph DT ["2. dt (Democratic Tier)"]
+        DT_GEN["Genesis (Trust Anchor)"]
+        DT_VAL["Auth/Whitelist Validation"]
+        DT_STATE["State Construction (Apply Events)"]
+        DT_SNAP["Snapshot & Pruning"]
+        DT_ID["URL Identity (#key)"]
+    end
+
+    subgraph SoVo ["3. sovo (Song Voter)"]
+        SV_MAP["Map Posts->Songs"]
+        SV_CONFLICT["Conflict Res (HLC Tie-Breaker)"]
+        SV_QUEUE["Queue Calc (Snapshot + Delta)"]
+        SV_UI["UI (Pure State Function)"]
+    end
+
+    %% UQ Foundation
+    UQ_DAG --> UQ_HLC
+    UQ_HLC --> UQ_SYNC
+    
+    %% DT builds on UQ
+    UQ_DAG --> DT_GEN
+    DT_GEN --> DT_VAL
+    UQ_DAG --> DT_VAL
+    UQ_SYNC --> DT_STATE
+    DT_VAL --> DT_STATE
+    DT_STATE --> DT_SNAP
+    
+    %% SoVo builds on DT
+    DT_ID --> SV_UI
+    DT_STATE --> SV_MAP
+    SV_MAP --> SV_CONFLICT
+    UQ_HLC -.-> SV_CONFLICT
+    DT_SNAP --> SV_QUEUE
+    SV_CONFLICT --> SV_QUEUE
+    SV_QUEUE --> SV_UI
+```
