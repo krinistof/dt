@@ -17,6 +17,6 @@
 		"@connectrpc/connect-web": "^2.0.1",
 		"@noble/ed25519": "^3.0.0",
 		"@noble/hashes": "^2.0.1",
-		"uq-client": "file:../../uq/client"
+		"uq-client": "file:../uq/client"
 	}
 }

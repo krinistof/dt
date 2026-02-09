@@ -24,6 +24,7 @@
           # Proto
           buf
           protobuf
+          nix
 
           # Tools
           sqlite
@@ -59,6 +60,12 @@
             
             echo -e "''${BLUE}[Check] Running in mode: $MODE''${NC}"
 
+            # Ensure UQ is built for full check/build
+            if [ "$MODE" = "all" ]; then
+                 echo -e "''${BLUE}[UQ] Building dependency...''${NC}"
+                 (cd uq && nix run .#build)
+            fi
+
             # --- Frontend Checks ---
             if [ "$MODE" = "all" ] || [ "$MODE" = "lint" ]; then
                 echo -e "''${BLUE}[Frontend] Linting...''${NC}"
@@ -92,11 +99,30 @@
           '';
         };
 
+        buildScript = pkgs.writeShellApplication {
+          name = "build";
+          runtimeInputs = rustInputs ++ nodeInputs;
+          text = ''
+            BLUE='\033[0;34m'
+            NC='\033[0m'
+            
+            echo -e "''${BLUE}[UQ] Building dependency...''${NC}"
+            (cd uq && nix run .#build)
+
+            echo -e "''${BLUE}[Frontend] Building...''${NC}"
+            (cd frontend && npm install && npm run build)
+            
+            echo -e "''${BLUE}[Backend] Building...''${NC}"
+            (cd backend && cargo build)
+          '';
+        };
+
       in
       {
         apps = {
           default = flake-utils.lib.mkApp { drv = checkScript; };
           check = flake-utils.lib.mkApp { drv = checkScript; };
+          build = flake-utils.lib.mkApp { drv = buildScript; };
         };
 
         devShells = {

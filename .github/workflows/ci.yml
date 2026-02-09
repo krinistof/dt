@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       - uses: cachix/install-nix-action@v27
         with:
           nix_path: nixpkgs=channel:nixos-unstable
@@ -31,5 +33,8 @@ jobs:
             backend/target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       
-      - name: Run All Checks
+      - name: Run UQ Checks
+        run: cd uq && nix run .#check -- all
+
+      - name: Run DT Checks
         run: nix run .#check -- all
