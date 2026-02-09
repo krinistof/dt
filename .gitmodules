@@ -1,0 +1,3 @@
+[submodule "uq"]
+	path = uq
+	url = https://github.com/krinistof/uq

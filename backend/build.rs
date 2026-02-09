@@ -20,18 +20,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // We just handle the frontend build trigger.
 
     if cfg!(feature = "build_frontend") {
-        // Build uq-client first
-        run_npm(&["install"], "../uq/client")?;
-        run_npm(&["run", "generate"], "../uq/client")?;
-        run_npm(&["run", "build"], "../uq/client")?;
-
-        // Build frontend
         run_npm(&["install"], "../frontend")?;
         run_npm(&["run", "build"], "../frontend")?;
 
         println!("cargo:rerun-if-changed=../frontend");
-        println!("cargo:rerun-if-changed=../uq/client");
-        println!("cargo:rerun-if-changed=../uq/proto");
     }
 
     Ok(())

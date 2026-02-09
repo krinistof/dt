@@ -9,8 +9,6 @@ This repository contains a full-stack application with a Rust backend (Axum) and
 ## Project Structure
 - `backend/`: Rust server application.
 - `frontend/`: TypeScript frontend application.
-- `uq/`: **(Submodule)** The UniQue identity and protocol library.
-  - *Note: This is now a separate repository. See `uq/README.md` for details.*
 - `flake.nix`: Nix environment definition.
 
 ## Development Environment (Nix)
@@ -44,20 +42,6 @@ Run these commands from the `frontend/` directory.
   - Example: `import { initializePlatform } from "./platform.js";`
 - **Platform**: `src/platform.ts` handles platform-specific initialization.
 - **DOM**: Direct DOM manipulation (e.g., `document.getElementById`).
-
-## UniQue (uq) SDK
-The `uq` library is a separate dependency. It handles identity, sync, and protocol definitions.
-If you need to modify `uq`, please refer to its own repository/documentation.
-
-- **Protocols**: Defined in `uq/proto`.
-- **Clients**: Generated code is consumed by `frontend` and `backend`.
-
-### Updating Protocols
-Since `uq` is separated:
-1.  Make changes in the `uq` repository (or submodule).
-2.  Re-generate/Publish the `uq` libraries.
-3.  Update dependencies in `backend/` (`cargo update`) and `frontend/` (`npm update`).
-
 
 ## Testing Strategy
 - **Integration Tests**: `backend/tests/integration_test.rs` spins up the backend and tries to run frontend tests.
