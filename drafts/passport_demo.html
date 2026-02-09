@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cold Storage Passports - Desktop Mode</title>
+    <style>
+        /* RESET & PAGE SETUP */
+        :root {
+            --card-w: 85mm;
+            --card-h: 100mm;
+            --fold-h: 50mm;
+            --ink: #111;
+            --guide: #bbb;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #e0e0e0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
+        .sheet {
+            width: 210mm;
+            height: 297mm;
+            background: white;
+            margin: 0 auto;
+            position: relative;
+            padding: 21mm 5mm;
+            page-break-after: always;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-content: center;
+        }
+
+        @media screen {
+            .sheet {
+                margin: 20px auto;
+                box-shadow: 0 0 15px rgba(0,0,0,0.15);
+            }
+        }
+
+        /* GRID SLOTS (Landscape on paper) */
+        .slot {
+            width: 100mm;
+            height: 85mm;
+            position: relative;
+            border: 1px dashed var(--guide);
+        }
+
+        /* PASSPORT CONTAINER
+           Rotated -90 to fit the A4 Portrait Grid.
+           This establishes the "Vertical" card coordinate system.
+        */
+        .passport {
+            width: 85mm;
+            height: 100mm;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-90deg);
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+        }
+
+        .fold-line {
+            position: absolute;
+            top: 50mm;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            border-top: 1px dotted var(--guide);
+            z-index: 10;
+        }
+
+        /* HALF SECTIONS (50mm tall x 85mm wide) */
+        .half {
+            height: 50mm;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- SIDE A: OUTER FACES (Standard Vertical) --- */
+        
+        /* Back Cover: Upside down so it orients correctly when folded */
+        .back-cover {
+            border-bottom: 1px solid var(--guide);
+        }
+        .back-cover-content {
+            transform: rotate(180deg);
+            text-align: center;
+            width: 100%;
+        }
+
+        /* Front Cover: Standard Upright */
+        .front-cover {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        /* --- SIDE B: INNER FACES (Rotated Book Mode) --- */
+        
+        /* 
+           UX TRICK: Rotate inner content 90deg.
+           When user turns card sideways (Book mode), this text becomes upright.
+        */
+        
+        /* Inner Lid (Becomes Left Page of Book) */
+        .inner-lid {
+            background-color: #f4f4f4;
+        }
+        
+        /* Inner Base (Becomes Right Page of Book) */
+        .inner-base {
+            background-color: #fff;
+        }
+
+        /* The container for inner content that rotates it 90deg CW */
+        .sideways-content {
+            width: 50mm;  /* Swap width/height constraints for rotation */
+            height: 85mm;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transform: rotate(90deg);
+            text-align: center;
+        }
+
+        /* TYPOGRAPHY */
+        h1 { font-size: 14pt; margin: 2mm 0; text-transform: uppercase; letter-spacing: 2px; }
+        .handle { 
+            font-weight: bold; 
+            font-size: 10pt; 
+            margin-top: 2mm; 
+            background: #000; 
+            color: #fff; 
+            padding: 2px 6px; 
+            display: inline-block;
+        }
+        .metadata { font-size: 6pt; color: #666; line-height: 1.3; }
+        .warning { 
+            font-size: 6pt; 
+            font-weight: bold; 
+            border: 1px solid #000; 
+            padding: 1px 3px; 
+            margin-bottom: 2mm; 
+            display: inline-block;
+        }
+        
+        /* SEED TEXT: Now formatted for the "Sideways" width (approx 40mm usable) */
+        .seed-text { 
+            font-size: 5.5pt; 
+            text-align: left; 
+            font-family: 'Courier New', Courier, monospace; 
+            width: 100%;
+            padding: 0 4mm;
+            line-height: 1.4;
+            margin-top: 2mm;
+        }
+
+        .orientation-icon {
+            position: absolute;
+            font-size: 20px;
+            color: #ddd;
+            top: 2mm;
+            right: 2mm;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- PAGE 1: OUTER FACES (Front & Back Covers) - VERTICAL LAYOUT -->
+    <div class="sheet">
+        
+        <!-- CARD 1 -->
+        <div class="slot">
+            <div class="passport">
+                <div class="fold-line"></div>
+                <!-- Back Cover (Top Half) -->
+                <div class="half back-cover">
+                    <div class="back-cover-content">
+                        <div class="metadata">
+                            OFFLINE STORAGE<br>
+                            BATCH: 2025-A<br>
+                            ID: #001
+                        </div>
+                        <div style="font-size:14px; margin-top:2px;">♠</div>
+                    </div>
+                </div>
+                <!-- Front Cover (Bottom Half) -->
+                <div class="half front-cover">
+                    <svg width="50" height="50" viewBox="0 0 10 10" shape-rendering="crispEdges">
+                        <path fill="#000" d="M1 1h3v3H1zM2 2h1v1H2z M6 1h3v3H6zM7 2h1v1H7z M1 6h3v3H1zM2 7h1v1H2z M5 5h1v1H5z M3 5h2v1H3z M6 6h1v3H6z M8 5h1v2H8z" />
+                    </svg>
+                    <h1>Passport</h1>
+                    <div class="handle">Rocket-Lazy-Blue</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD 2 -->
+        <div class="slot">
+            <div class="passport">
+                <div class="fold-line"></div>
+                <div class="half back-cover">
+                    <div class="back-cover-content">
+                        <div class="metadata">OFFLINE STORAGE<br>BATCH: 2025-A<br>ID: #002</div>
+                        <div style="font-size:14px; margin-top:2px;">♣</div>
+                    </div>
+                </div>
+                <div class="half front-cover">
+                    <svg width="50" height="50" viewBox="0 0 10 10" shape-rendering="crispEdges">
+                        <path fill="#000" d="M1 1h3v3H1zM6 1h3v3H6zM1 6h3v3H1zM5 2h1v1H5zM2 5h1v1H2zM7 6h2v2H7z" />
+                    </svg>
+                    <h1>Passport</h1>
+                    <div class="handle">Alpha-Neon-Wolf</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD 3 -->
+        <div class="slot">
+            <div class="passport">
+                <div class="fold-line"></div>
+                <div class="half back-cover">
+                    <div class="back-cover-content">
+                        <div class="metadata">OFFLINE STORAGE<br>BATCH: 2025-A<br>ID: #003</div>
+                        <div style="font-size:14px; margin-top:2px;">♥</div>
+                    </div>
+                </div>
+                <div class="half front-cover">
+                    <svg width="50" height="50" viewBox="0 0 10 10" shape-rendering="crispEdges">
+                        <path fill="#000" d="M1 1h3v3H1zM6 1h3v3H6zM1 6h3v3H1zM5 5h3v1H5zM2 5h1v1H2z" />
+                    </svg>
+                    <h1>Passport</h1>
+                    <div class="handle">Silver-Hawk-Moon</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD 4 -->
+        <div class="slot">
+            <div class="passport">
+                <div class="fold-line"></div>
+                <div class="half back-cover">
+                    <div class="back-cover-content">
+                        <div class="metadata">OFFLINE STORAGE<br>BATCH: 2025-A<br>ID: #004</div>
+                        <div style="font-size:14px; margin-top:2px;">♦</div>
+                    </div>
+                </div>
+                <div class="half front-cover">
+                    <svg width="50" height="50" viewBox="0 0 10 10" shape-rendering="crispEdges">
+                        <path fill="#000" d="M1 1h3v3H1zM6 1h3v3H6zM1 6h3v3H1zM5 1h1v3H5zM6 7h1v1H6z" />
+                    </svg>
+                    <h1>Passport</h1>
+                    <div class="handle">Iron-Tiger-Sun</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD 5 -->
+        <div class="slot">
+            <div class="passport">
+                <div class="fold-line"></div>
+                <div class="half back-cover">
+                    <div class="back-cover-content">
+                        <div class="metadata">OFFLINE STORAGE<br>BATCH: 2025-A<br>ID: #005</div>
+                        <div style="font-size:14px; margin-top:2px;">★</div>
+                    </div>
+                </div>
+                <div class="half front-cover">
+                    <svg width="50" height="50" viewBox="0 0 10 10" shape-rendering="crispEdges">
+                        <path fill="#000" d="M1 1h3v3H1zM6 1h3v3H6zM1 6h3v3H1zM4 4h2v2H4z" />
+                    </svg>
+                    <h1>Passport</h1>
+                    <div class="handle">Echo-Lunar-Dust</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD 6 -->
+        <div class="slot">
+            <div class="passport">
+                <div class="fold-line"></div>
+                <div class="half back-cover">
+                    <div class="back-cover-content">
+                        <div class="metadata">OFFLINE STORAGE<br>BATCH: 2025-A<br>ID: #006</div>
+                        <div style="font-size:14px; margin-top:2px;">☀</div>
+                    </div>
+                </div>
+                <div class="half front-cover">
+                    <svg width="50" height="50" viewBox="0 0 10 10" shape-rendering="crispEdges">
+                        <path fill="#000" d="M1 1h3v3H1zM6 1h3v3H6zM1 6h3v3H1zM3 3h4v4H3z" />
+                    </svg>
+                    <h1>Passport</h1>
+                    <div class="handle">Velvet-Rain-Sky</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 2: INNER FACES (Private) - ROTATED BOOK LAYOUT -->
+    <div class="sheet">
+        
+        <!-- ROW 1 BACK (Aligns with Card 1 & 2 Front) -->
+        <!-- Slot 2 Mirror (Card 2) -->
+        <div class="slot">
+            <div class="passport">
+                <div class="fold-line"></div>
+                <!-- Inner Lid (Left Page when Turned) -->
+                <div class="half inner-lid">
+                    <div class="sideways-content">
+                        <div class="orientation-icon">⟳</div>
+                        <div class="warning">READ MODE</div>
+                        <div class="metadata">ROTATE CARD 90°<br>TO TYPE DATA</div>
+                    </div>
+                </div>
+                <!-- Inner Base (Right Page when Turned) -->
+                <div class="half inner-base">
+                    <div class="sideways-content">
+                        <svg width="70" height="70" viewBox="0 0 20 20" shape-rendering="crispEdges">
+                            <path fill="#000" d="M0 0h7v7H0zM1 1v5h5V1zM2 2h3v3H2z M13 0h7v7h-7zM14 1v5h5V1zM15 2h3v3h-3z M0 13h7v7H0zM1 14v5h5v-5zM2 15h3v3H2z M8 0h1v1h-1zM10 2h1v1h-1zM5 8h1v1h-1zM14 9h3v1h-3zM9 11h2v2h-2zM3 13h1v1h-1zM15 15h1v1h-1z" />
+                            <path fill="#000" opacity="0.5" d="M8 8h4v4H8z" /> 
+                        </svg>
+                        <div class="seed-text">
+                            1. witch<br>2. collapse<br>3. practice<br>4. feed<br>5. shame<br>6. open
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slot 1 Mirror (Card 1) -->
+        <div class="slot">
+            <div class="passport">
+                <div class="fold-line"></div>
+                <div class="half inner-lid">
+                    <div class="sideways-content">
+                        <div class="orientation-icon">⟳</div>
+                        <div class="warning">READ MODE</div>
+                        <div class="metadata">ROTATE CARD 90°<br>TO TYPE DATA</div>
+                    </div>
+                </div>
+                <div class="half inner-base">
+                    <div class="sideways-content">
+                        <svg width="70" height="70" viewBox="0 0 20 20" shape-rendering="crispEdges">
+                            <path fill="#000" d="M0 0h7v7H0zM1 1v5h5V1zM13 0h7v7h-7zM14 1v5h5V1zM0 13h7v7H0zM1 14v5h5v-5z M8 2h3v2h-3zM2 9h2v1h-2zM15 11h2v3h-2z" />
+                            <path fill="#000" opacity="0.5" d="M9 9h2v2H9z" />
+                        </svg>
+                        <div class="seed-text">
+                            1. bacon<br>2. echo<br>3. grid<br>4. huge<br>5. kite<br>6. lemon
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROW 2 BACK -->
+        <!-- Slot 4 Mirror -->
+        <div class="slot">
+            <div class="passport">
+                <div class="fold-line"></div>
+                <div class="half inner-lid">
+                    <div class="sideways-content">
+                        <div class="orientation-icon">⟳</div>
+                        <div class="warning">READ MODE</div>
+                        <div class="metadata">ROTATE CARD 90°</div>
+                    </div>
+                </div>
+                <div class="half inner-base">
+                    <div class="sideways-content">
+                        <svg width="70" height="70" viewBox="0 0 20 20" shape-rendering="crispEdges">
+                            <path fill="#000" d="M0 0h7v7H0zM13 0h7v7h-7zM0 13h7v7H0z" />
+                            <path fill="#000" opacity="0.3" d="M0 0h20v20H0z" />
+                        </svg>
+                        <div class="seed-text">
+                            1. jazz<br>2. kite<br>3. lemon<br>4. mango<br>5. neon<br>6. orbit
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slot 3 Mirror -->
+        <div class="slot">
+            <div class="passport">
+                <div class="fold-line"></div>
+                <div class="half inner-lid">
+                    <div class="sideways-content">
+                        <div class="orientation-icon">⟳</div>
+                        <div class="warning">READ MODE</div>
+                        <div class="metadata">ROTATE CARD 90°</div>
+                    </div>
+                </div>
+                <div class="half inner-base">
+                    <div class="sideways-content">
+                        <svg width="70" height="70" viewBox="0 0 20 20" shape-rendering="crispEdges">
+                            <path fill="#000" d="M0 0h7v7H0zM13 0h7v7h-7zM0 13h7v7H0z" />
+                            <path fill="#000" opacity="0.3" d="M2 2h16v16H2z" /> 
+                        </svg>
+                        <div class="seed-text">
+                            1. alpha<br>2. brave<br>3. cargo<br>4. delta<br>5. echo<br>6. foxtrot
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROW 3 BACK -->
+        <!-- Slot 6 Mirror -->
+        <div class="slot">
+            <div class="passport">
+                <div class="fold-line"></div>
+                <div class="half inner-lid">
+                    <div class="sideways-content">
+                        <div class="orientation-icon">⟳</div>
+                        <div class="warning">READ MODE</div>
+                        <div class="metadata">ROTATE CARD 90°</div>
+                    </div>
+                </div>
+                <div class="half inner-base">
+                    <div class="sideways-content">
+                        <svg width="70" height="70" viewBox="0 0 20 20" shape-rendering="crispEdges">
+                            <path fill="#000" d="M0 0h7v7H0zM13 0h7v7h-7zM0 13h7v7H0z" />
+                            <path fill="#000" opacity="0.3" d="M4 4h12v12H4z" />
+                        </svg>
+                        <div class="seed-text">
+                            1. zero<br>2. yankee<br>3. xray<br>4. whiskey<br>5. victor<br>6. uniform
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slot 5 Mirror -->
+        <div class="slot">
+            <div class="passport">
+                <div class="fold-line"></div>
+                <div class="half inner-lid">
+                    <div class="sideways-content">
+                        <div class="orientation-icon">⟳</div>
+                        <div class="warning">READ MODE</div>
+                        <div class="metadata">ROTATE CARD 90°</div>
+                    </div>
+                </div>
+                <div class="half inner-base">
+                    <div class="sideways-content">
+                        <svg width="70" height="70" viewBox="0 0 20 20" shape-rendering="crispEdges">
+                            <path fill="#000" d="M0 0h7v7H0zM13 0h7v7h-7zM0 13h7v7H0z" />
+                            <path fill="#000" opacity="0.3" d="M6 6h8v8H6z" />
+                        </svg>
+                        <div class="seed-text">
+                            1. mars<br>2. neptune<br>3. pluto<br>4. saturn<br>5. uranus<br>6. venus
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
