@@ -65,6 +65,11 @@ The architecture is layered to provide a generic, verifiable, and decentralized 
 
 ---
 
+## 4. Infrastructure & Testing
+
+### Testing
+- [ ] **Regression Benchmarking:** Implement regression benchmarking to prevent merging slower implementations. Compare timed debug logs of all tests on both commits (PR vs Base).
+
 ## Dependency Graph
 
 ```mermaid
