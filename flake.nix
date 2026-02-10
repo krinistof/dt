@@ -48,6 +48,9 @@
           name = "check";
           runtimeInputs = rustInputs ++ nodeInputs;
           text = ''
+            # Set up PKG_CONFIG_PATH for openssl
+            export PKG_CONFIG_PATH="${pkgs.openssl.dev}/lib/pkgconfig:''${PKG_CONFIG_PATH:-}"
+
             # Colors
             GREEN='\033[0;32m'
             BLUE='\033[0;34m'
@@ -103,6 +106,9 @@
           name = "build";
           runtimeInputs = rustInputs ++ nodeInputs;
           text = ''
+            # Set up PKG_CONFIG_PATH for openssl
+            export PKG_CONFIG_PATH="${pkgs.openssl.dev}/lib/pkgconfig:''${PKG_CONFIG_PATH:-}"
+
             BLUE='\033[0;34m'
             NC='\033[0m'
             
