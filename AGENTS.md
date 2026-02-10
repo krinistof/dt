@@ -9,6 +9,7 @@ This repository contains a full-stack application with a Rust backend (Axum) and
 ## Project Structure
 - `backend/`: Rust server application.
 - `frontend/`: TypeScript frontend application.
+- `uq/`: Submodule of UniQue dependency. 
 - `flake.nix`: Nix environment definition.
 
 ## Development Environment (Nix)
@@ -24,7 +25,7 @@ Here are the key commands:
 - **Run**: Never call run, it's the developer's responsibility.
 
 ### Code Style & Conventions
-There are linters and other validator tools interaded. Those are automatically ran by both CI and git hooks. 
+There are linters and other validator tools integrated. Those are automatically ran by both git hooks and CI! 
 
 ## Frontend (TypeScript)
 
