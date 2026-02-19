@@ -44,10 +44,6 @@ This repository is being refactored into a **Monorepo** hosting both the core pr
 ## The UniQue Protocol
 
 **Democratic Tier** is built on top of **UniQue**, a decentralized event synchronization protocol. 
-UniQue uses **Asymmetric Topics** where events are cryptographically bound to a topic via `topic_pk`.
+UniQue uses **Asymmetric Topics** where events are cryptographically bound.
 
 For more details on the architecture, see [docs/architecture.md](docs/architecture.md).
-
-## Roadmap
-
-See [TODO.md](TODO.md) for the active development plan and refactoring status.
